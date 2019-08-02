@@ -24,7 +24,7 @@ FISCO BCOS Go语言版本的SDK，主要的功能有：
 git clone https://github.com/KasperLiu/gobcos.git
 ```
 
-然后切换到远程`dev`分支：
+然后切换到远程`eht-dev`分支：
 
 ```shell
 git checkout -b eth-dev origin/eth-dev
