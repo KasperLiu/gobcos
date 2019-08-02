@@ -1,4 +1,4 @@
-// Copyright 2019 The go-ethereum Authors
+// Copyright 2016 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
 // The go-ethereum library is free software: you can redistribute it and/or modify
@@ -14,20 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+//+build !go1.5
 
-package rpc
+// no-op implementation of tracing methods for Go < 1.5.
 
-/*
-#include <sys/un.h>
+package debug
 
-int max_socket_path_size_gobcos() {
-struct sockaddr_un s;
-return sizeof(s.sun_path);
+import "errors"
+
+func (*HandlerT) StartGoTrace(string) error {
+	return errors.New("tracing is not supported on Go < 1.5")
 }
-*/
-import "C"
 
-var (
-	max_path_size = C.max_socket_path_size_gobcos()
-)
+func (*HandlerT) StopGoTrace() error {
+	return errors.New("tracing is not supported on Go < 1.5")
+}

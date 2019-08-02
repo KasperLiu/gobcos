@@ -1,4 +1,4 @@
-// Copyright 2019 The go-ethereum Authors
+// Copyright 2016 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
 // The go-ethereum library is free software: you can redistribute it and/or modify
@@ -14,20 +14,11 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+// +build !go1.6
 
-package rpc
+package debug
 
-/*
-#include <sys/un.h>
-
-int max_socket_path_size_gobcos() {
-struct sockaddr_un s;
-return sizeof(s.sun_path);
+// LoudPanic panics in a way that gets all goroutine stacks printed on stderr.
+func LoudPanic(x interface{}) {
+	panic(x)
 }
-*/
-import "C"
-
-var (
-	max_path_size = C.max_socket_path_size_gobcos()
-)

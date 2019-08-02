@@ -1,4 +1,4 @@
-// Copyright 2019 The go-ethereum Authors
+// Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
 // The go-ethereum library is free software: you can redistribute it and/or modify
@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+package abi
 
-package rpc
-
-/*
-#include <sys/un.h>
-
-int max_socket_path_size_gobcos() {
-struct sockaddr_un s;
-return sizeof(s.sun_path);
-}
-*/
-import "C"
-
-var (
-	max_path_size = C.max_socket_path_size_gobcos()
+import (
+	"bytes"
+	"math/big"
+	"testing"
 )
+
+func TestNumberTypes(t *testing.T) {
+	ubytes := make([]byte, 32)
+	ubytes[31] = 1
+
+	unsigned := U256(big.NewInt(1))
+	if !bytes.Equal(unsigned, ubytes) {
+		t.Errorf("expected %x got %x", ubytes, unsigned)
+	}
+}

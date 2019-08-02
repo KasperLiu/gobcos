@@ -1,4 +1,4 @@
-// Copyright 2019 The go-ethereum Authors
+// Copyright 2017 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
 // The go-ethereum library is free software: you can redistribute it and/or modify
@@ -14,20 +14,33 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+// Package testlog provides a log handler for unit tests.
+package testlog
 
-package rpc
+import (
+	"testing"
 
-/*
-#include <sys/un.h>
-
-int max_socket_path_size_gobcos() {
-struct sockaddr_un s;
-return sizeof(s.sun_path);
-}
-*/
-import "C"
-
-var (
-	max_path_size = C.max_socket_path_size_gobcos()
+	"github.com/ethereum/go-ethereum/log"
 )
+
+// Logger returns a logger which logs to the unit test log of t.
+func Logger(t *testing.T, level log.Lvl) log.Logger {
+	l := log.New()
+	l.SetHandler(Handler(t, level))
+	return l
+}
+
+// Handler returns a log handler which logs to the unit test log of t.
+func Handler(t *testing.T, level log.Lvl) log.Handler {
+	return log.LvlFilterHandler(level, &handler{t, log.TerminalFormat(false)})
+}
+
+type handler struct {
+	t   *testing.T
+	fmt log.Format
+}
+
+func (h *handler) Log(r *log.Record) error {
+	h.t.Logf("%s", h.fmt.Format(r))
+	return nil
+}

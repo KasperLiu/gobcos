@@ -1,4 +1,4 @@
-// Copyright 2019 The go-ethereum Authors
+// Copyright 2015 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
 // The go-ethereum library is free software: you can redistribute it and/or modify
@@ -14,20 +14,31 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+package abi
 
-package rpc
+import (
+	"math/big"
+	"reflect"
 
-/*
-#include <sys/un.h>
-
-int max_socket_path_size_gobcos() {
-struct sockaddr_un s;
-return sizeof(s.sun_path);
-}
-*/
-import "C"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/math"
+)
 
 var (
-	max_path_size = C.max_socket_path_size_gobcos()
+	bigT      = reflect.TypeOf(&big.Int{})
+	derefbigT = reflect.TypeOf(big.Int{})
+	uint8T    = reflect.TypeOf(uint8(0))
+	uint16T   = reflect.TypeOf(uint16(0))
+	uint32T   = reflect.TypeOf(uint32(0))
+	uint64T   = reflect.TypeOf(uint64(0))
+	int8T     = reflect.TypeOf(int8(0))
+	int16T    = reflect.TypeOf(int16(0))
+	int32T    = reflect.TypeOf(int32(0))
+	int64T    = reflect.TypeOf(int64(0))
+	addressT  = reflect.TypeOf(common.Address{})
 )
+
+// U256 converts a big Int into a 256bit EVM number.
+func U256(n *big.Int) []byte {
+	return math.PaddedBigBytes(math.U256(n), 32)
+}

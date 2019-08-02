@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+package accounts
 
-package rpc
+import (
+	"bytes"
+	"testing"
 
-/*
-#include <sys/un.h>
-
-int max_socket_path_size_gobcos() {
-struct sockaddr_un s;
-return sizeof(s.sun_path);
-}
-*/
-import "C"
-
-var (
-	max_path_size = C.max_socket_path_size_gobcos()
+	"github.com/ethereum/go-ethereum/common/hexutil"
 )
+
+func TestTextHash(t *testing.T) {
+	hash := TextHash([]byte("Hello Joe"))
+	want := hexutil.MustDecode("0xa080337ae51c4e064c189e113edd0ba391df9206e2f49db658bb32cf2911730b")
+	if !bytes.Equal(hash, want) {
+		t.Fatalf("wrong hash: %x", hash)
+	}
+}

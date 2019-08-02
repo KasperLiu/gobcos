@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// Package ethclient provides a client for the Ethereum RPC API.
+// Package client provides a client for the FISCO BCOS RPC API.
 package client
 
 import (
@@ -22,8 +22,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
 	"gobcos/rpc"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -34,25 +34,26 @@ import (
 
 // Client defines typed wrappers for the Ethereum RPC API.
 type Client struct {
-	c *rpc.Client
+	c       *rpc.Client
+	groupID uint
 }
 
 // Dial connects a client to the given URL.
-func Dial(rawurl string) (*Client, error) {
-	return DialContext(context.Background(), rawurl)
+func Dial(rawurl string, groupID uint) (*Client, error) {
+	return DialContext(context.Background(), rawurl, groupID)
 }
 
-func DialContext(ctx context.Context, rawurl string) (*Client, error) {
+func DialContext(ctx context.Context, rawurl string, groupID uint) (*Client, error) {
 	c, err := rpc.DialContext(ctx, rawurl)
 	if err != nil {
 		return nil, err
 	}
-	return NewClient(c), nil
+	return NewClient(c, groupID), nil
 }
 
 // NewClient creates a client that uses the given RPC client.
-func NewClient(c *rpc.Client) *Client {
-	return &Client{c}
+func NewClient(c *rpc.Client, groupID uint) *Client {
+	return &Client{c: c, groupID: groupID}
 }
 
 func (ec *Client) Close() {
@@ -359,7 +360,7 @@ func (ec *Client) StorageAt(ctx context.Context, account common.Address, key com
 // The block number can be nil, in which case the code is taken from the latest known block.
 func (ec *Client) CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
 	var result hexutil.Bytes
-	err := ec.c.CallContext(ctx, &result, "eth_getCode", account, toBlockNumArg(blockNumber))
+	err := ec.c.CallContext(ctx, &result, "getCode", ec.groupID, account.String())
 	return result, err
 }
 
@@ -463,13 +464,21 @@ func (ec *Client) PendingTransactionCount(ctx context.Context) (uint, error) {
 // case the code is taken from the latest known block. Note that state from very old
 // blocks might not be available.
 // ========================== edit by KasperLiu ==========================
+type callResult struct {
+	CurrentBlockNumber string `json:"currentBlockNumber"`
+	Output             string `json:"output"`
+	Status             string `json:"status"`
+}
+
 func (ec *Client) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	var hex hexutil.Bytes
+	var cr *callResult
 	// err := ec.c.CallContext(ctx, &hex, "eth_call", toCallArg(msg), toBlockNumArg(blockNumber))
-	err := ec.c.CallContext(ctx, &hex, "call", toCallArg(msg), toBlockNumArg(blockNumber))
+	err := ec.c.CallContext(ctx, &cr, "call", ec.groupID, toCallArg(msg))
 	if err != nil {
 		return nil, err
 	}
+	hex = common.FromHex(cr.Output)
 	return hex, nil
 }
 
@@ -519,23 +528,29 @@ func (ec *Client) SendTransaction(ctx context.Context, tx *types.Transaction) er
 	return ec.c.CallContext(ctx, nil, "eth_sendRawTransaction", common.ToHex(data))
 }
 
+// ==================================== edit by KasperLiu =================================
 func toCallArg(msg ethereum.CallMsg) interface{} {
 	arg := map[string]interface{}{
-		"from": msg.From,
-		"to":   msg.To,
+		"from": msg.From.String(),
+		"to":   msg.To.String(),
 	}
 	if len(msg.Data) > 0 {
-		arg["data"] = hexutil.Bytes(msg.Data)
+		arg["data"] = hexutil.Bytes(msg.Data).String()
 	}
 	if msg.Value != nil {
-		arg["value"] = (*hexutil.Big)(msg.Value)
+		arg["value"] = (*hexutil.Big)(msg.Value).String()
 	}
+
 	if msg.Gas != 0 {
 		arg["gas"] = hexutil.Uint64(msg.Gas)
 	}
 	if msg.GasPrice != nil {
 		arg["gasPrice"] = (*hexutil.Big)(msg.GasPrice)
 	}
+
+	// ======================== KasperLiu =============================
+	fmt.Printf("goclient.go toCallArg(): \n %+v \n", arg)
+
 	return arg
 }
 
@@ -545,22 +560,22 @@ func toCallArg(msg ethereum.CallMsg) interface{} {
 func (gc *Client) GetClientVersion(ctx context.Context) ([]byte, error) {
 	var raw interface{}
 	err := gc.c.CallContext(ctx, &raw, "getClientVersion")
-    if err != nil {
+	if err != nil {
 		return nil, err
 	}
 	js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	return js, err
 }
 
 // GetBlockNumber returns the latest block height(hex format) on a given groupID.
 func (gc *Client) GetBlockNumber(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
 	err := gc.c.CallContext(ctx, &raw, "getBlockNumber", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetPBFTView returns the latest PBFT view(hex format) of the specific group and it will returns a wrong sentence
@@ -568,234 +583,234 @@ func (gc *Client) GetBlockNumber(ctx context.Context, groupID *big.Int) ([]byte,
 func (gc *Client) GetPBFTView(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
 	err := gc.c.CallContext(ctx, &raw, "getPbftView", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 
-    // TODO
-    // Raft consensus
+	// TODO
+	// Raft consensus
 }
 
 // GetSealerList returns the list of consensus nodes' ID according to the groupID
 func (gc *Client) GetSealerList(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
 	err := gc.c.CallContext(ctx, &raw, "getSealerList", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetObserverList returns the list of observer nodes' ID according to the groupID
 func (gc *Client) GetObserverList(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
 	err := gc.c.CallContext(ctx, &raw, "getObserverList", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetConsensusStatus returns the status information about the consensus algorithm on a specific groupID
 func (gc *Client) GetConsensusStatus(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getConsensusStatus", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getConsensusStatus", groupID)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetSyncStatus returns the synchronization status of the group
 func (gc *Client) GetSyncStatus(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getSyncStatus", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getSyncStatus", groupID)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetPeers returns the information of the connected peers
 func (gc *Client) GetPeers(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getPeers", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getPeers", groupID)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetGroupPeers returns the nodes and the overser nodes list on a specific group
 func (gc *Client) GetGroupPeers(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getGroupPeers", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getGroupPeers", groupID)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetNodeIDList returns the ID information of the connected peers and itself
 func (gc *Client) GetNodeIDList(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getNodeIDList", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getNodeIDList", groupID)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
-// getGroupList returns the groupID that the node belongs to 
+// getGroupList returns the groupID that the node belongs to
 func (gc *Client) GetGroupList(ctx context.Context) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getGroupList")
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getGroupList")
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetBlockByHash returns the block information according to the given block hash
 func (gc *Client) GetBlockByHash(ctx context.Context, groupID *big.Int, bhash string, includetx bool) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getBlockByHash", groupID, bhash, includetx)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getBlockByHash", groupID, bhash, includetx)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetBlockByNumber returns the block information according to the given block number(hex format)
 func (gc *Client) GetBlockByNumber(ctx context.Context, groupID *big.Int, bnum string, includetx bool) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getBlockByNumber", groupID, bnum, includetx)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getBlockByNumber", groupID, bnum, includetx)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetBlockHashByNumber returns the block hash according to the given block number
 func (gc *Client) GetBlockHashByNumber(ctx context.Context, groupID *big.Int, bnum string) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getBlockHashByNumber", groupID, bnum)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getBlockHashByNumber", groupID, bnum)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetTransactionByHash returns the transaction information according to the given transaction hash
 func (gc *Client) GetTransactionByHash(ctx context.Context, groupID *big.Int, txhash string) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getTransactionByHash", groupID, txhash)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getTransactionByHash", groupID, txhash)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
-// getTransactionByBlockHashAndIndex returns the transaction information according to 
+// GetTransactionByBlockHashAndIndex returns the transaction information according to
 // the given block hash and transaction index
 func (gc *Client) GetTransactionByBlockHashAndIndex(ctx context.Context, groupID *big.Int, bhash string, txindex string) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getTransactionByBlockHashAndIndex", groupID, bhash, txindex)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getTransactionByBlockHashAndIndex", groupID, bhash, txindex)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
-// GetTransactionByBlockNumberAndIndex returns the transaction information according to 
+// GetTransactionByBlockNumberAndIndex returns the transaction information according to
 // the given block number and transaction index
 func (gc *Client) GetTransactionByBlockNumberAndIndex(ctx context.Context, groupID *big.Int, bnum string, txindex string) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getTransactionByBlockNumberAndIndex", groupID, bnum, txindex)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getTransactionByBlockNumberAndIndex", groupID, bnum, txindex)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetTransactionReceipt returns the transaction receipt according to the given transaction hash
 func (gc *Client) GetTransactionReceipt(ctx context.Context, groupID *big.Int, txhash string) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getTransactionReceipt", groupID, txhash)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getTransactionReceipt", groupID, txhash)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetPendingTransactions returns information of the pending transactions
 func (gc *Client) GetPendingTransactions(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getPendingTransactions", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getPendingTransactions", groupID)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetPendingTxSize returns amount of the pending transactions
 func (gc *Client) GetPendingTxSize(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getPendingTxSize", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getPendingTxSize", groupID)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetCode returns the contract code according to the contract address
 func (gc *Client) GetCode(ctx context.Context, groupID *big.Int, addr string) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getCode", groupID, addr)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getCode", groupID, addr)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetTotalTransactionCount returns the totoal amount of transactions and the block height at present
 func (gc *Client) GetTotalTransactionCount(ctx context.Context, groupID *big.Int) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getTotalTransactionCount", groupID)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getTotalTransactionCount", groupID)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }
 
 // GetSystemConfigByKey returns value according to the key(only tx_count_limit, tx_gas_limit could work)
 func (gc *Client) GetSystemConfigByKey(ctx context.Context, groupID *big.Int, findkey string) ([]byte, error) {
 	var raw interface{}
-    err := gc.c.CallContext(ctx, &raw, "getSystemConfigByKey", groupID, findkey)
-    if err != nil {
-        return nil, err
-    }
-    js, err := json.MarshalIndent(raw, "", "\t")
-    return js,err
+	err := gc.c.CallContext(ctx, &raw, "getSystemConfigByKey", groupID, findkey)
+	if err != nil {
+		return nil, err
+	}
+	js, err := json.MarshalIndent(raw, "", "\t")
+	return js, err
 }

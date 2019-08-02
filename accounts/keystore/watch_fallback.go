@@ -1,4 +1,4 @@
-// Copyright 2019 The go-ethereum Authors
+// Copyright 2016 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
 // The go-ethereum library is free software: you can redistribute it and/or modify
@@ -14,20 +14,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+// +build darwin,!cgo ios linux,arm64 windows !darwin,!freebsd,!linux,!netbsd,!solaris
 
-package rpc
+// This is the fallback implementation of directory watching.
+// It is used on unsupported platforms.
 
-/*
-#include <sys/un.h>
+package keystore
 
-int max_socket_path_size_gobcos() {
-struct sockaddr_un s;
-return sizeof(s.sun_path);
-}
-*/
-import "C"
+type watcher struct{ running bool }
 
-var (
-	max_path_size = C.max_socket_path_size_gobcos()
-)
+func newWatcher(*accountCache) *watcher { return new(watcher) }
+func (*watcher) start()                 {}
+func (*watcher) close()                 {}

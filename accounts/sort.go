@@ -1,4 +1,4 @@
-// Copyright 2019 The go-ethereum Authors
+// Copyright 2018 The go-ethereum Authors
 // This file is part of the go-ethereum library.
 //
 // The go-ethereum library is free software: you can redistribute it and/or modify
@@ -14,20 +14,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
 
-// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
+package accounts
 
-package rpc
+// AccountsByURL implements sort.Interface for []Account based on the URL field.
+type AccountsByURL []Account
 
-/*
-#include <sys/un.h>
+func (a AccountsByURL) Len() int           { return len(a) }
+func (a AccountsByURL) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a AccountsByURL) Less(i, j int) bool { return a[i].URL.Cmp(a[j].URL) < 0 }
 
-int max_socket_path_size_gobcos() {
-struct sockaddr_un s;
-return sizeof(s.sun_path);
-}
-*/
-import "C"
+// WalletsByURL implements sort.Interface for []Wallet based on the URL field.
+type WalletsByURL []Wallet
 
-var (
-	max_path_size = C.max_socket_path_size_gobcos()
-)
+func (w WalletsByURL) Len() int           { return len(w) }
+func (w WalletsByURL) Swap(i, j int)      { w[i], w[j] = w[j], w[i] }
+func (w WalletsByURL) Less(i, j int) bool { return w[i].URL().Cmp(w[j].URL()) < 0 }
