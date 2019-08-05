@@ -3,12 +3,11 @@ package client
 import (
 	"testing"
 	"context"
-	"math/big"
 )
 
 func GetClient(t *testing.T) (*Client) {
 	// RPC API
-	c, err := Dial("http://localhost:8545")
+	c, err := Dial("http://localhost:8545", 1)
 	if err != nil {
 		t.Fatalf("can not dial to the RPC API: %v", err)
 	}
@@ -30,8 +29,7 @@ func TestBlockNumber(t *testing.T) {
     c := GetClient(t)
 	// cannot use big.NewInt to construct json request
 	// TODO: analysis the ethereum's big.NewInt
-    groupID := big.NewInt(1)
-	bn, err := c.GetBlockNumber(context.Background(), groupID)
+	bn, err := c.GetBlockNumber(context.Background())
 	if err != nil {
 		t.Fatalf("block number not found: %v", err)
 	}
@@ -41,8 +39,7 @@ func TestBlockNumber(t *testing.T) {
 
 func TestPBFTView(t *testing.T) {
 	c := GetClient(t)
-	groupID := big.NewInt(1)
-	pv, err := c.GetPBFTView(context.Background(), groupID)
+	pv, err := c.GetPBFTView(context.Background())
 	if err != nil {
 		t.Fatalf("PBFT view not found: %v", err)
 	}
@@ -52,8 +49,7 @@ func TestPBFTView(t *testing.T) {
 
 // func TestSealerList(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
-// 	sl, err := c.GetSealerList(context.Background(), groupID)
+// 	sl, err := c.GetSealerList(context.Background())
 // 	if err != nil {
 // 		t.Fatalf("sealer list not found: %v", err)
 // 	}
@@ -63,8 +59,7 @@ func TestPBFTView(t *testing.T) {
 
 // func TestObserverList(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
-// 	ol, err := c.GetObserverList(context.Background(), groupID)
+// 	ol, err := c.GetObserverList(context.Background())
 // 	if err != nil {
 // 		t.Fatalf("observer list not found: %v", err)
 // 	}
@@ -74,8 +69,7 @@ func TestPBFTView(t *testing.T) {
 
 // func TestConsensusStatus(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
-// 	status, err := c.GetConsensusStatus(context.Background(), groupID)
+// 	status, err := c.GetConsensusStatus(context.Background())
 // 	if err != nil {
 // 		t.Fatalf("consensus status not found: %v", err)
 // 	}
@@ -85,8 +79,8 @@ func TestPBFTView(t *testing.T) {
 
 // func TestSyncStatus(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
-// 	raw, err := c.GetSyncStatus(context.Background(), groupID)
+	
+// 	raw, err := c.GetSyncStatus(context.Background())
 // 	if err != nil {
 // 		t.Fatalf("synchronization status not found: %v", err)
 // 	}
@@ -96,8 +90,8 @@ func TestPBFTView(t *testing.T) {
 
 // func TestPeers(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
-// 	raw, err := c.GetPeers(context.Background(), groupID)
+	
+// 	raw, err := c.GetPeers(context.Background())
 // 	if err != nil {
 // 		t.Fatalf("peers not found: %v", err)
 // 	}
@@ -107,8 +101,8 @@ func TestPBFTView(t *testing.T) {
 
 // func TestGroupPeers(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
-// 	raw, err := c.GetGroupPeers(context.Background(), groupID)
+	
+// 	raw, err := c.GetGroupPeers(context.Background())
 // 	if err != nil {
 // 		t.Fatalf("group peers not found: %v", err)
 // 	}
@@ -118,8 +112,8 @@ func TestPBFTView(t *testing.T) {
 
 // func TestNodeIDList(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
-// 	raw, err := c.GetNodeIDList(context.Background(), groupID)
+	
+// 	raw, err := c.GetNodeIDList(context.Background())
 // 	if err != nil {
 // 		t.Fatalf("nodeID list not found: %v", err)
 // 	}
@@ -139,10 +133,10 @@ func TestPBFTView(t *testing.T) {
 
 // func TestBlockByHash(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
+	
 // 	bhash := "0xc0b21d064b97bafda716e07785fe8bb20cc23506bb980f12c7f7a4f4ef50ce30"
 // 	includeTx := false
-// 	raw, err := c.GetBlockByHash(context.Background(), groupID, bhash, includeTx)
+// 	raw, err := c.GetBlockByHash(context.Background(), bhash, includeTx)
 // 	if err != nil {
 // 		t.Fatalf("block not found: %v", err)
 // 	}
@@ -152,10 +146,10 @@ func TestPBFTView(t *testing.T) {
 
 // func TestBlockByNumber(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
+	
 // 	bnum := "0x1"
 // 	includeTx := true
-// 	raw, err := c.GetBlockByNumber(context.Background(), groupID, bnum, includeTx)
+// 	raw, err := c.GetBlockByNumber(context.Background(), bnum, includeTx)
 // 	if err != nil {
 // 		t.Fatalf("block not found: %v", err)
 // 	}
@@ -165,9 +159,9 @@ func TestPBFTView(t *testing.T) {
 
 // func TestBlockHashByNumber(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
+	
 // 	bnum := "0x1"
-// 	raw, err := c.GetBlockHashByNumber(context.Background(), groupID, bnum)
+// 	raw, err := c.GetBlockHashByNumber(context.Background(), bnum)
 // 	if err != nil {
 // 		t.Fatalf("block hash not found: %v", err)
 // 	}
@@ -177,9 +171,9 @@ func TestPBFTView(t *testing.T) {
 
 // func TestTransactionByHash(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
+	
 // 	txhash := "0xed51827558939e8d103cbf8f6ff37f8a99582f09afa29e5636d0e54a073d0893"
-// 	raw, err := c.GetTransactionByHash(context.Background(), groupID, txhash)
+// 	raw, err := c.GetTransactionByHash(context.Background(), txhash)
 // 	if err != nil {
 // 		t.Fatalf("transaction not found: %v", err)
 // 	}
@@ -189,10 +183,10 @@ func TestPBFTView(t *testing.T) {
 
 // func TestTransactionByBlockHashAndIndex(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
+	
 // 	bhash := "0xc0b21d064b97bafda716e07785fe8bb20cc23506bb980f12c7f7a4f4ef50ce30"
 // 	txindex := "0x0"
-// 	raw, err := c.GetTransactionByBlockHashAndIndex(context.Background(), groupID, bhash, txindex)
+// 	raw, err := c.GetTransactionByBlockHashAndIndex(context.Background(), bhash, txindex)
 // 	if err != nil {
 // 		t.Fatalf("transaction not found: %v", err)
 // 	}
@@ -202,10 +196,10 @@ func TestPBFTView(t *testing.T) {
 
 // func TestTransactionByBlockNumberAndIndex(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
+	
 // 	bnum := "0x1"
 // 	txindex := "0x0"
-// 	raw, err := c.GetTransactionByBlockNumberAndIndex(context.Background(), groupID, bnum, txindex)
+// 	raw, err := c.GetTransactionByBlockNumberAndIndex(context.Background(), bnum, txindex)
 // 	if err != nil {
 // 		t.Fatalf("transaction not found: %v", err)
 // 	}
@@ -215,9 +209,9 @@ func TestPBFTView(t *testing.T) {
 
 // func TestTransactionReceipt(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
+	
 // 	txhash := "0xed51827558939e8d103cbf8f6ff37f8a99582f09afa29e5636d0e54a073d0893"
-// 	raw, err := c.GetTransactionReceipt(context.Background(), groupID, txhash)
+// 	raw, err := c.GetTransactionReceipt(context.Background(), txhash)
 // 	if err != nil {
 // 		t.Fatalf("transaction receipt not found: %v", err)
 // 	}
@@ -227,8 +221,8 @@ func TestPBFTView(t *testing.T) {
 
 // func TestPendingTransactions(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
-// 	raw, err := c.GetPendingTransactions(context.Background(), groupID)
+	
+// 	raw, err := c.GetPendingTransactions(context.Background())
 // 	if err != nil {
 // 		t.Fatalf("pending transactions not found: %v", err)
 // 	}
@@ -238,8 +232,8 @@ func TestPBFTView(t *testing.T) {
 
 // func TestPendingTxSize(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
-// 	raw, err := c.GetPendingTxSize(context.Background(), groupID)
+	
+// 	raw, err := c.GetPendingTxSize(context.Background())
 // 	if err != nil {
 // 		t.Fatalf("pending transactions not found: %v", err)
 // 	}
@@ -249,9 +243,9 @@ func TestPBFTView(t *testing.T) {
 
 // func TestGetCode(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
+	
 // 	addr := "0x27c1b5d9fe3ab035c2e9db7199d4beb139e12292"
-// 	raw, err := c.GetCode(context.Background(), groupID, addr)
+// 	raw, err := c.GetCode(context.Background(), addr)
 // 	if err != nil {
 // 		t.Fatalf("contract not found: %v", err)
 // 	}
@@ -261,8 +255,8 @@ func TestPBFTView(t *testing.T) {
 
 // func TestTotalTransactionCount(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
-// 	raw, err := c.GetTotalTransactionCount(context.Background(), groupID)
+	
+// 	raw, err := c.GetTotalTransactionCount(context.Background())
 // 	if err != nil {
 // 		t.Fatalf("transactions not found: %v", err)
 // 	}
@@ -272,9 +266,9 @@ func TestPBFTView(t *testing.T) {
 
 // func TestSystemConfigByKey(t *testing.T) {
 // 	c := GetClient(t)
-// 	groupID := big.NewInt(1)
+	
 // 	findkey := "tx_count_limit"
-// 	raw, err := c.GetSystemConfigByKey(context.Background(), groupID, findkey)
+// 	raw, err := c.GetSystemConfigByKey(context.Background(), findkey)
 // 	if err != nil {
 // 		t.Fatalf("the value not found: %v", err)
 // 	}

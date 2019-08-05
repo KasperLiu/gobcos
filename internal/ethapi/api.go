@@ -28,6 +28,7 @@ import (
 	"gobcos/accounts/keystore"
 	"gobcos/accounts/scwallet"
 	"gobcos/rpc"
+	"gobcos/core/types"
 
 	"github.com/davecgh/go-spew/spew"
 	// "github.com/ethereum/go-ethereum/accounts"
@@ -40,7 +41,7 @@ import (
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
+	// "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"

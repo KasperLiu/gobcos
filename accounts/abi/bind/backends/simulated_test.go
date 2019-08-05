@@ -22,13 +22,14 @@ import (
 	"testing"
 	"gobcos/accounts/abi/bind"
 	"gobcos/accounts/abi/bind/backends"
+	"gobcos/core/types"
 
 	ethereum "github.com/ethereum/go-ethereum"
 	// "github.com/ethereum/go-ethereum/accounts/abi/bind"
 	// "github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
+	// "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 

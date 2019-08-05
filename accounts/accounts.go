@@ -20,10 +20,11 @@ package accounts
 import (
 	"fmt"
 	"math/big"
+	"gobcos/core/types"
 
 	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	// "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/event"
 	"golang.org/x/crypto/sha3"
 )
