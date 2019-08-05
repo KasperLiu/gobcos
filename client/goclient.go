@@ -217,6 +217,50 @@ func (gc *Client) StorageAt(ctx context.Context, account common.Address, key com
 	return result, err
 }
 
+// NonceAt returns the account nonce of the given account.
+// The block number can be nil, in which case the nonce is taken from the latest known block.
+func (gc *Client) NonceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (uint64, error) {
+	var result hexutil.Uint64
+	err := gc.c.CallContext(ctx, &result, "eth_getTransactionCount", account, toBlockNumArg(blockNumber))
+	return uint64(result), err
+}
+
+// Pending State
+
+// PendingBalanceAt returns the wei balance of the given account in the pending state.
+func (gc *Client) PendingBalanceAt(ctx context.Context, account common.Address) (*big.Int, error) {
+	var result hexutil.Big
+	err := gc.c.CallContext(ctx, &result, "eth_getBalance", account, "pending")
+	return (*big.Int)(&result), err
+}
+
+// PendingStorageAt returns the value of key in the contract storage of the given account in the pending state.
+func (gc *Client) PendingStorageAt(ctx context.Context, account common.Address, key common.Hash) ([]byte, error) {
+	var result hexutil.Bytes
+	err := gc.c.CallContext(ctx, &result, "eth_getStorageAt", account, key, "pending")
+	return result, err
+}
+
+
+
+// PendingTransactionCount returns the total number of transactions in the pending state.
+func (gc *Client) PendingTransactionCount(ctx context.Context) (uint, error) {
+	var num hexutil.Uint
+	err := gc.c.CallContext(ctx, &num, "eth_getBlockTransactionCountByNumber", "pending")
+	return uint(num), err
+}
+
+// CallContract executes a message call transaction, which is directly executed in the VM
+// of the node, but never mined into the blockchain.
+//
+// blockNumber selects the block height at which the call runs. It can be nil, in which
+// case the code is taken from the latest known block. Note that state from very old
+// blocks might not be available.
+
+
+// ========================== edit by KasperLiu ==========================
+
+
 // CodeAt returns the contract code of the given account.
 // The block number can be nil, in which case the code is taken from the latest known block.
 func (gc *Client) CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error) {
@@ -226,13 +270,6 @@ func (gc *Client) CodeAt(ctx context.Context, account common.Address, blockNumbe
 	return result, err
 }
 
-// NonceAt returns the account nonce of the given account.
-// The block number can be nil, in which case the nonce is taken from the latest known block.
-func (gc *Client) NonceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (uint64, error) {
-	var result hexutil.Uint64
-	err := gc.c.CallContext(ctx, &result, "eth_getTransactionCount", account, toBlockNumArg(blockNumber))
-	return uint64(result), err
-}
 
 // Filters
 
@@ -279,20 +316,6 @@ func toFilterArg(q ethereum.FilterQuery) (interface{}, error) {
 
 // Pending State
 
-// PendingBalanceAt returns the wei balance of the given account in the pending state.
-func (gc *Client) PendingBalanceAt(ctx context.Context, account common.Address) (*big.Int, error) {
-	var result hexutil.Big
-	err := gc.c.CallContext(ctx, &result, "eth_getBalance", account, "pending")
-	return (*big.Int)(&result), err
-}
-
-// PendingStorageAt returns the value of key in the contract storage of the given account in the pending state.
-func (gc *Client) PendingStorageAt(ctx context.Context, account common.Address, key common.Hash) ([]byte, error) {
-	var result hexutil.Bytes
-	err := gc.c.CallContext(ctx, &result, "eth_getStorageAt", account, key, "pending")
-	return result, err
-}
-
 // PendingCodeAt returns the contract code of the given account in the pending state.
 func (gc *Client) PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error) {
 	var result hexutil.Bytes
@@ -310,24 +333,9 @@ func (gc *Client) PendingNonceAt(ctx context.Context, account common.Address) (u
 	return uint64(result), err
 }
 
-// PendingTransactionCount returns the total number of transactions in the pending state.
-func (gc *Client) PendingTransactionCount(ctx context.Context) (uint, error) {
-	var num hexutil.Uint
-	err := gc.c.CallContext(ctx, &num, "eth_getBlockTransactionCountByNumber", "pending")
-	return uint(num), err
-}
-
-// TODO: SubscribePendingTransactions (needs server side)
 
 // Contract Calling
 
-// CallContract executes a message call transaction, which is directly executed in the VM
-// of the node, but never mined into the blockchain.
-//
-// blockNumber selects the block height at which the call runs. It can be nil, in which
-// case the code is taken from the latest known block. Note that state from very old
-// blocks might not be available.
-// ========================== edit by KasperLiu ==========================
 type callResult struct {
 	CurrentBlockNumber string `json:"currentBlockNumber"`
 	Output             string `json:"output"`
@@ -416,9 +424,6 @@ func toCallArg(msg ethereum.CallMsg) interface{} {
 	if msg.GasPrice != nil {
 		arg["gasPrice"] = (*hexutil.Big)(msg.GasPrice)
 	}
-
-	// ======================== KasperLiu =============================
-	fmt.Printf("goclient.go toCallArg(): \n %+v \n", arg)
 
 	return arg
 }
