@@ -22,15 +22,14 @@ import (
 	"io"
 	"io/ioutil"
 	"gobcos/accounts"
-	// "gobcos/accounts/external"
 	"gobcos/accounts/keystore"
 	"gobcos/core/types"
 
 	// "github.com/ethereum/go-ethereum/accounts"
-	// "github.com/ethereum/go-ethereum/accounts/external"
 	// "github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	// "github.com/ethereum/go-ethereum/core/types"
+	// "github.com/ethereum/go-ethereum/accounts/external"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
