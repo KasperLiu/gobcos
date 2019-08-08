@@ -21,6 +21,8 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"crypto/rand"
+	"time"
 	"gobcos/accounts/abi"
 	"gobcos/core/types"
 
@@ -28,13 +30,14 @@ import (
 	// "github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	// "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
+	// "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/event"
+	// "github.com/ethereum/go-ethereum/rlp"
 )
 
 // SignerFn is a signer function callback when a contract requires a method to
 // sign the transaction before submission.
-type SignerFn func(types.Signer, common.Address, *types.Transaction) (*types.Transaction, error)
+type SignerFn func(types.RawSigner, common.Address, *types.RawTransaction) (*types.RawTransaction, error)
 
 // CallOpts is the collection of options to fine tune a contract call request.
 type CallOpts struct {
@@ -53,7 +56,7 @@ type TransactOpts struct {
 
 	Value    *big.Int // Funds to transfer along along the transaction (nil = 0 = no funds)
 	GasPrice *big.Int // Gas price to use for the transaction execution (nil = gas price oracle)
-	GasLimit uint64   // Gas limit to set for the transaction execution (0 = estimate)
+	GasLimit *big.Int   // Gas limit to set for the transaction execution (0 = estimate)
 
 	Context context.Context // Network context to support cancellation and timeouts (nil = no timeout)
 }
@@ -99,7 +102,7 @@ func NewBoundContract(address common.Address, abi abi.ABI, caller ContractCaller
 
 // DeployContract deploys a contract onto the Ethereum blockchain and binds the
 // deployment address with a Go wrapper.
-func DeployContract(opts *TransactOpts, abi abi.ABI, bytecode []byte, backend ContractBackend, params ...interface{}) (common.Address, *types.Transaction, *BoundContract, error) {
+func DeployContract(opts *TransactOpts, abi abi.ABI, bytecode []byte, backend ContractBackend, params ...interface{}) (common.Address, *types.RawTransaction, *BoundContract, error) {
 	// Otherwise try to deploy the contract
 	c := NewBoundContract(common.Address{}, abi, backend, backend, backend)
 
@@ -111,7 +114,23 @@ func DeployContract(opts *TransactOpts, abi abi.ABI, bytecode []byte, backend Co
 	if err != nil {
 		return common.Address{}, nil, nil, err
 	}
-	c.address = crypto.CreateAddress(opts.From, tx.Nonce())
+	var address common.Address
+	timeTick := 0
+	// wait for the result of deployment
+	for range time.Tick(time.Second) {
+		address, err = c.transactor.GetContractAddress(ensureContext(opts.Context), tx.Hash().Hex())
+		if err != nil {
+            timeTick++
+		}
+		if timeTick == 15 {
+			return common.Address{}, nil, nil, fmt.Errorf("time out for the contract deployment: %+v", err)
+		}
+		if err == nil {
+			break
+		}
+	}
+	
+	c.address = address
 	return c.address, tx, c, nil
 }
 
@@ -170,7 +189,7 @@ func (c *BoundContract) Call(opts *CallOpts, result interface{}, method string, 
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (c *BoundContract) Transact(opts *TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+func (c *BoundContract) Transact(opts *TransactOpts, method string, params ...interface{}) (*types.RawTransaction, error) {
 	// Otherwise pack up the parameters and invoke the contract
 	input, err := c.abi.Pack(method, params...)
 	if err != nil {
@@ -181,13 +200,13 @@ func (c *BoundContract) Transact(opts *TransactOpts, method string, params ...in
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (c *BoundContract) Transfer(opts *TransactOpts) (*types.Transaction, error) {
+func (c *BoundContract) Transfer(opts *TransactOpts) (*types.RawTransaction, error) {
 	return c.transact(opts, &c.address, nil)
 }
 
 // transact executes an actual transaction invocation, first deriving any missing 
 // authorization fields, and then scheduling the transaction for execution.
-func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, input []byte) (*types.Transaction, error) {
+func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, input []byte) (*types.RawTransaction, error) {
 	var err error
 
 	// Ensure a valid value field and resolve the account nonce
@@ -195,25 +214,25 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 	if value == nil {
 		value = new(big.Int)
 	}
-	var nonce uint64
-	if opts.Nonce == nil {
-		nonce, err = c.transactor.PendingNonceAt(ensureContext(opts.Context), opts.From)
-		if err != nil {
-			return nil, fmt.Errorf("failed to retrieve account nonce: %v", err)
-		}
-	} else {
-		nonce = opts.Nonce.Uint64()
+    // generate random Nonce between 0 - 2^250 - 1
+    max := new(big.Int)
+	max.Exp(big.NewInt(2), big.NewInt(250), nil).Sub(max, big.NewInt(1))
+	//Generate cryptographically strong pseudo-random between 0 - max
+	nonce, err := rand.Int(rand.Reader, max)
+	if err != nil {
+		//error handling
+		return nil, fmt.Errorf("failed to generate nonce: %v", err)
 	}
+
 	// Figure out the gas allowance and gas price values
 	gasPrice := opts.GasPrice
 	if gasPrice == nil {
-		gasPrice, err = c.transactor.SuggestGasPrice(ensureContext(opts.Context))
-		if err != nil {
-			return nil, fmt.Errorf("failed to suggest gas price: %v", err)
-		}
+		// default value
+		gasPrice = big.NewInt(30000000)
 	}
+
 	gasLimit := opts.GasLimit
-	if gasLimit == 0 {
+	if gasLimit == nil {
 		// Gas estimation cannot succeed without code for method invocations
 		if contract != nil {
 			if code, err := c.transactor.PendingCodeAt(ensureContext(opts.Context), c.address); err != nil {
@@ -222,24 +241,39 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 				return nil, ErrNoCode
 			}
 		}
-		// If the contract surely has code (or code is not needed), estimate the transaction
-		msg := ethereum.CallMsg{From: opts.From, To: contract, Value: value, Data: input}
-		gasLimit, err = c.transactor.EstimateGas(ensureContext(opts.Context), msg)
-		if err != nil {
-			return nil, fmt.Errorf("failed to estimate gas needed: %v", err)
-		}
+		// If the contract surely has code (or code is not needed), we set a default value to the transaction
+		gasLimit = big.NewInt(30000000)
 	}
+
+    var blockLimit *big.Int
+	blockLimit, err = c.transactor.GetBlockLimit(ensureContext(opts.Context))
+	if err != nil {
+		 return nil, err
+	}
+
+	var chainID *big.Int
+	chainID, err = c.transactor.GetChainID(ensureContext(opts.Context))
+	if err != nil {
+		return nil, err
+	}
+	
+    var groupID *big.Int
+	groupID = c.transactor.GetGroupID()
+	if groupID == nil {
+		return nil, fmt.Errorf("failed to get the group ID")
+    }
+
 	// Create the transaction, sign it and schedule it for execution
-	var rawTx *types.Transaction
+	var rawTx *types.RawTransaction
 	if contract == nil {
-		rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input)
+		rawTx = types.NewRawContractCreation(nonce, value, gasLimit, gasPrice, blockLimit, input, chainID, groupID, nil)
 	} else {
-		rawTx = types.NewTransaction(nonce, c.address, value, gasLimit, gasPrice, input)
+		rawTx = types.NewRawTransaction(nonce, c.address, value, gasLimit, gasPrice, blockLimit, input, chainID, groupID,nil)
 	}
 	if opts.Signer == nil {
 		return nil, errors.New("no signer to authorize the transaction with")
 	}
-	signedTx, err := opts.Signer(types.HomesteadSigner{}, opts.From, rawTx)
+	signedTx, err := opts.Signer(types.HomesteadRawSigner{}, opts.From, rawTx)
 	if err != nil {
 		return nil, err
 	}
