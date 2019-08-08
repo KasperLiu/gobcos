@@ -32,9 +32,6 @@ import (
 	"gobcos/common"
 	"gobcos/crypto"
 
-	// "github.com/ethereum/go-ethereum/accounts"
-	// "github.com/ethereum/go-ethereum/common"
-	// "github.com/ethereum/go-ethereum/crypto"
 	"github.com/pborman/uuid"
 )
 

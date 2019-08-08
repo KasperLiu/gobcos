@@ -17,7 +17,6 @@
 package bind
 
 import "gobcos/accounts/abi" 
-// "github.com/ethereum/go-ethereum/accounts/abi"
 
 // tmplData is the data structure required to fill the binding template.
 type tmplData struct {

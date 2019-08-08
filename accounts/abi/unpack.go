@@ -23,7 +23,6 @@ import (
 	"reflect"
 
 	"gobcos/common"
-	// "github.com/ethereum/go-ethereum/common"
 )
 
 var (

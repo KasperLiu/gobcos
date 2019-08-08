@@ -23,18 +23,11 @@ import (
 	"math/big"
 	"crypto/rand"
 	"time"
+	
 	"gobcos/accounts/abi"
 	"gobcos/core/types"
 	"gobcos/common"
 	"gobcos/event"
-
-	// "github.com/ethereum/go-ethereum"
-	// "github.com/ethereum/go-ethereum/accounts/abi"
-	// "github.com/ethereum/go-ethereum/common"
-	// "github.com/ethereum/go-ethereum/core/types"
-	// "github.com/ethereum/go-ethereum/crypto"
-	// "github.com/ethereum/go-ethereum/event"
-	// "github.com/ethereum/go-ethereum/rlp"
 )
 
 // SignerFn is a signer function callback when a contract requires a method to

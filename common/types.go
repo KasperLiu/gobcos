@@ -25,8 +25,8 @@ import (
 	"math/rand"
 	"reflect"
 	"strings"
-	"gobcos/common/hexutil"
 
+	"gobcos/common/hexutil"
 	"golang.org/x/crypto/sha3"
 )
 
