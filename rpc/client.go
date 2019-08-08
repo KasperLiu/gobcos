@@ -27,8 +27,6 @@ import (
 	"strconv"
 	"sync/atomic"
 	"time"
-
-	"github.com/ethereum/go-ethereum/log"
 )
 
 var (
@@ -151,12 +149,7 @@ func (op *requestOp) wait(ctx context.Context, c *Client) (*jsonrpcMessage, erro
 
 // Dial creates a new client for the given URL.
 //
-// The currently supported URL schemes are "http", "https", "ws" and "wss". If rawurl is a
-// file name with no URL scheme, a local socket connection is established using UNIX
-// domain sockets on supported platforms and named pipes on Windows. If you want to
-// configure transport options, use DialHTTP, DialWebsocket or DialIPC instead.
-//
-// For websocket connections, the origin is set to the local host name.
+// The currently supported URL schemes are "http", "https". 
 //
 // The client reconnects automatically if the connection is lost.
 func Dial(rawurl string) (*Client, error) {
@@ -175,12 +168,6 @@ func DialContext(ctx context.Context, rawurl string) (*Client, error) {
 	switch u.Scheme {
 	case "http", "https":
 		return DialHTTP(rawurl)
-	case "ws", "wss":
-		return DialWebsocket(ctx, rawurl, "")
-	case "stdio":
-		return DialStdIO(ctx)
-	case "":
-		return DialIPC(ctx, rawurl)
 	default:
 		return nil, fmt.Errorf("no known transport for URL scheme %q", u.Scheme)
 	}
@@ -389,9 +376,8 @@ func (c *Client) Notify(ctx context.Context, method string, args ...interface{})
 
 	if c.isHTTP {
 		return c.sendHTTP(ctx, op, msg)
-	} else {
-		return c.send(ctx, op, msg)
-	}
+	} 
+	return c.send(ctx, op, msg)
 }
 
 // EthSubscribe registers a subscripion under the "eth" namespace.
@@ -504,7 +490,7 @@ func (c *Client) reconnect(ctx context.Context) error {
 	}
 	newconn, err := c.reconnectFunc(ctx)
 	if err != nil {
-		log.Trace("RPC client reconnect failed", "err", err)
+		// log.Trace("RPC client reconnect failed", "err", err)
 		return err
 	}
 	select {
@@ -553,13 +539,13 @@ func (c *Client) dispatch(codec ServerCodec) {
 			}
 
 		case err := <-c.readErr:
-			conn.handler.log.Debug("RPC connection read error", "err", err)
+			// conn.handler.log.Debug("RPC connection read error", "err", err)
 			conn.close(err, lastOp)
 			reading = false
 
 		// Reconnect:
 		case newcodec := <-c.reconnected:
-			log.Debug("RPC client reconnected", "reading", reading, "conn", newcodec.RemoteAddr())
+			// log.Debug("RPC client reconnected", "reading", reading, "conn", newcodec.RemoteAddr())
 			if reading {
 				// Wait for the previous read loop to exit. This is a rare case which
 				// happens if this loop isn't notified in time after the connection breaks.
