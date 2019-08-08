@@ -42,7 +42,7 @@ import (
 	"fmt"
 	"hash"
 
-	ethcrypto "gobcos/crypto"
+	ethcrypto "github.com/KasperLiu/gobcos/crypto"
 )
 
 var (

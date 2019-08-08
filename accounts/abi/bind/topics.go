@@ -23,9 +23,9 @@ import (
 	"math/big"
 	"reflect"
 	
-	"gobcos/accounts/abi"
-	"gobcos/common"
-	"gobcos/crypto"
+	"github.com/KasperLiu/gobcos/accounts/abi"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/crypto"
 )
 
 // makeTopics converts a filter query argument list into a filter topic set.

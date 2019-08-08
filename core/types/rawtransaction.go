@@ -7,10 +7,10 @@ import (
 	"math/big"
 	"sync/atomic"
 	
-	"gobcos/common"
-	"gobcos/common/hexutil"
-	"gobcos/crypto"
-	"gobcos/rlp"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/common/hexutil"
+	"github.com/KasperLiu/gobcos/crypto"
+	"github.com/KasperLiu/gobcos/rlp"
 	"golang.org/x/crypto/sha3"
 )
 

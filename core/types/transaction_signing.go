@@ -22,8 +22,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"gobcos/common"
-	"gobcos/crypto"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/crypto"
 )
 
 var (

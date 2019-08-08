@@ -20,8 +20,8 @@ import (
 	"math/big"
 	"reflect"
 
-	"gobcos/common"
-	"gobcos/common/math"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/common/math"
 )
 
 // packBytesSlice packs the given bytes as [L, V] as the canonical representation

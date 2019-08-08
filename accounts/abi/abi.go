@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"io"
 
-	"gobcos/common"
+	"github.com/KasperLiu/gobcos/common"
 )
 
 // The ABI holds information about a contract's context and available

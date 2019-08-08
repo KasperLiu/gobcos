@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"reflect"
 
-	"gobcos/common"
+	"github.com/KasperLiu/gobcos/common"
 )
 
 var (

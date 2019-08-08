@@ -16,7 +16,7 @@
 
 package bind
 
-import "gobcos/accounts/abi" 
+import "github.com/KasperLiu/gobcos/accounts/abi" 
 
 // tmplData is the data structure required to fill the binding template.
 type tmplData struct {
@@ -87,11 +87,11 @@ package {{.Package}}
 import (
 	"math/big"
 	"strings"
-	"gobcos/accounts/abi"
-	"gobcos/accounts/abi/bind"
-	"gobcos/core/types"
-	"gobcos/common"
-	"gobcos/event"
+	"github.com/KasperLiu/gobcos/accounts/abi"
+	"github.com/KasperLiu/gobcos/accounts/abi/bind"
+	"github.com/KasperLiu/gobcos/core/types"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

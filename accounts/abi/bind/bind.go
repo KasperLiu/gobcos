@@ -30,7 +30,7 @@ import (
 	"text/template"
 	"unicode"
 	
-	"gobcos/accounts/abi"
+	"github.com/KasperLiu/gobcos/accounts/abi"
 )
 
 // Lang is a target programming language selector to generate bindings for.

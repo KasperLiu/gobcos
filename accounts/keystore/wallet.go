@@ -19,10 +19,10 @@ package keystore
 import (
 	"math/big"
 	
-	"gobcos/accounts"
-	"gobcos/core/types"
-	"gobcos/crypto"
-	"gobcos/common"
+	"github.com/KasperLiu/gobcos/accounts"
+	"github.com/KasperLiu/gobcos/core/types"
+	"github.com/KasperLiu/gobcos/crypto"
+	"github.com/KasperLiu/gobcos/common"
 
 )
 

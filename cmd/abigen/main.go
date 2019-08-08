@@ -23,10 +23,10 @@ import (
 	"os"
 	"strings"
 	
-	"gobcos/accounts/abi/bind"
-	"gobcos/cmd/utils"
-	"gobcos/common/compiler"
-	"gobcos/crypto"
+	"github.com/KasperLiu/gobcos/accounts/abi/bind"
+	"github.com/KasperLiu/gobcos/cmd/utils"
+	"github.com/KasperLiu/gobcos/common/compiler"
+	"github.com/KasperLiu/gobcos/crypto"
 	"gopkg.in/urfave/cli.v1"
 )
 

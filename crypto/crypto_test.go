@@ -26,8 +26,8 @@ import (
 	"reflect"
 	"testing"
 	
-	"gobcos/common"
-	"gobcos/common/hexutil"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/common/hexutil"
 )
 
 var testAddrHex = "970e8128ab834e8eac17ab8e3812f010678cf791"

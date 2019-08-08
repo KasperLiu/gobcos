@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"gobcos/common/hexutil"
-	"gobcos/crypto"
+	"github.com/KasperLiu/gobcos/common/hexutil"
+	"github.com/KasperLiu/gobcos/crypto"
 )
 
 type bytesBacked interface {

@@ -21,9 +21,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"gobcos/core/types"
-	"gobcos/common"
-	"gobcos/event"
+	"github.com/KasperLiu/gobcos/core/types"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/event"
 	"golang.org/x/crypto/sha3"
 )
 

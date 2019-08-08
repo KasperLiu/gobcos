@@ -24,10 +24,10 @@ import (
 	"crypto/rand"
 	"time"
 	
-	"gobcos/accounts/abi"
-	"gobcos/core/types"
-	"gobcos/common"
-	"gobcos/event"
+	"github.com/KasperLiu/gobcos/accounts/abi"
+	"github.com/KasperLiu/gobcos/core/types"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/event"
 )
 
 // SignerFn is a signer function callback when a contract requires a method to

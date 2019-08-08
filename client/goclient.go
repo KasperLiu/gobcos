@@ -23,11 +23,11 @@ import (
 	"fmt"
 	"math/big"
 	"errors"
-	"gobcos/common"
-	"gobcos/common/hexutil"
-	"gobcos/rpc"
-	"gobcos/core/types"
-	"gobcos/rlp"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/common/hexutil"
+	"github.com/KasperLiu/gobcos/rpc"
+	"github.com/KasperLiu/gobcos/core/types"
+	"github.com/KasperLiu/gobcos/rlp"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API. 

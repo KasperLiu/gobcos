@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"gobcos/common"
-	"gobcos/crypto"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/crypto"
 )
 
 // Event is an event potentially triggered by the EVM's LOG mechanism. The Event

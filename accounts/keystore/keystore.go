@@ -32,11 +32,11 @@ import (
 	"runtime"
 	"sync"
 	"time"
-	"gobcos/accounts"
-	"gobcos/core/types"
-	"gobcos/common"
-	"gobcos/crypto"
-	"gobcos/event"
+	"github.com/KasperLiu/gobcos/accounts"
+	"github.com/KasperLiu/gobcos/core/types"
+	"github.com/KasperLiu/gobcos/common"
+	"github.com/KasperLiu/gobcos/crypto"
+	"github.com/KasperLiu/gobcos/event"
 
 )
 

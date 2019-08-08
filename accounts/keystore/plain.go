@@ -22,7 +22,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"gobcos/common"
+	"github.com/KasperLiu/gobcos/common"
 )
 
 type keyStorePlain struct {

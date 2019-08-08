@@ -26,8 +26,8 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"gobcos/accounts"
-	"gobcos/common"
+	"github.com/KasperLiu/gobcos/accounts"
+	"github.com/KasperLiu/gobcos/common"
 
 	mapset "github.com/deckarep/golang-set"
 )

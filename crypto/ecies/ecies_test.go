@@ -40,7 +40,7 @@ import (
 	"math/big"
 	"testing"
 
-	"gobcos/crypto"
+	"github.com/KasperLiu/gobcos/crypto"
 )
 
 var dumpEnc bool

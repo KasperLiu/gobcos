@@ -22,11 +22,11 @@ import (
 	"io"
 	"io/ioutil"
 
-	"gobcos/accounts"
-	"gobcos/accounts/keystore"
-	"gobcos/core/types"
-	"gobcos/crypto"
-	"gobcos/common"
+	"github.com/KasperLiu/gobcos/accounts"
+	"github.com/KasperLiu/gobcos/accounts/keystore"
+	"github.com/KasperLiu/gobcos/core/types"
+	"github.com/KasperLiu/gobcos/crypto"
+	"github.com/KasperLiu/gobcos/common"
 )
 
 // NewTransactor is a utility method to easily create a transaction signer from

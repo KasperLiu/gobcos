@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 	
-	"gobcos/common/mclock"
+	"github.com/KasperLiu/gobcos/common/mclock"
 )
 
 // Subscription represents a stream of events. The carrier of the events is typically a

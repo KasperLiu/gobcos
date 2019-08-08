@@ -21,7 +21,7 @@ import (
 	"context"
 	"errors"
 	"math/big"
-	// "gobcos/core/types"
+	// "github.com/KasperLiu/gobcos/core/types"
 )
 
 // NotFound is returned by API methods if the requested item does not exist.

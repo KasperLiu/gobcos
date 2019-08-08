@@ -21,8 +21,8 @@ import (
 	"errors"
 	"math/big"
 
-	"gobcos/core/types"
-	"gobcos/common"
+	"github.com/KasperLiu/gobcos/core/types"
+	"github.com/KasperLiu/gobcos/common"
 )
 
 var (
