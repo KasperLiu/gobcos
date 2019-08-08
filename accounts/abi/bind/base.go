@@ -25,13 +25,15 @@ import (
 	"time"
 	"gobcos/accounts/abi"
 	"gobcos/core/types"
+	"gobcos/common"
+	"gobcos/event"
 
-	"github.com/ethereum/go-ethereum"
+	// "github.com/ethereum/go-ethereum"
 	// "github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
+	// "github.com/ethereum/go-ethereum/common"
 	// "github.com/ethereum/go-ethereum/core/types"
 	// "github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/event"
+	// "github.com/ethereum/go-ethereum/event"
 	// "github.com/ethereum/go-ethereum/rlp"
 )
 
@@ -151,7 +153,7 @@ func (c *BoundContract) Call(opts *CallOpts, result interface{}, method string, 
 		return err
 	}
 	var (
-		msg    = ethereum.CallMsg{From: opts.From, To: &c.address, Data: input}
+		msg    = common.CallMsg{From: opts.From, To: &c.address, Data: input}
 		ctx    = ensureContext(opts.Context)
 		code   []byte
 		output []byte
@@ -300,7 +302,7 @@ func (c *BoundContract) FilterLogs(opts *FilterOpts, name string, query ...[]int
 	// Start the background filtering
 	logs := make(chan types.Log, 128)
 
-	config := ethereum.FilterQuery{
+	config := common.FilterQuery{
 		Addresses: []common.Address{c.address},
 		Topics:    topics,
 		FromBlock: new(big.Int).SetUint64(opts.Start),
@@ -349,7 +351,7 @@ func (c *BoundContract) WatchLogs(opts *WatchOpts, name string, query ...[]inter
 	// Start the background filtering
 	logs := make(chan types.Log, 128)
 
-	config := ethereum.FilterQuery{
+	config := common.FilterQuery{
 		Addresses: []common.Address{c.address},
 		Topics:    topics,
 	}
@@ -395,8 +397,8 @@ func (c *BoundContract) UnpackLogIntoMap(out map[string]interface{}, event strin
 	return parseTopicsIntoMap(out, indexed, log.Topics[1:])
 }
 
-// ensureContext is a helper method to ensure a context is not nil, even if the
-// user specified it as such.
+// // ensureContext is a helper method to ensure a context is not nil, even if the
+// // user specified it as such.
 func ensureContext(ctx context.Context) context.Context {
 	if ctx == nil {
 		return context.TODO()

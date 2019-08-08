@@ -22,7 +22,8 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/ethereum/go-ethereum/common"
+	"gobcos/common"
+	// "github.com/ethereum/go-ethereum/common"
 )
 
 var (

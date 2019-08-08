@@ -32,7 +32,7 @@ import (
 	"gobcos/accounts/abi"
 
 	// "github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/log"
+	// "github.com/ethereum/go-ethereum/log"
 )
 
 // Lang is a target programming language selector to generate bindings for.
@@ -159,7 +159,8 @@ func Bind(types []string, abis []string, bytecodes []string, fsigs []map[string]
 		for pattern, name := range libs {
 			matched, err := regexp.Match("__\\$"+pattern+"\\$__", []byte(contracts[types[i]].InputBin))
 			if err != nil {
-				log.Error("Could not search for pattern", "pattern", pattern, "contract", contracts[types[i]], "err", err)
+				// log.Error("Could not search for pattern", "pattern", pattern, "contract", contracts[types[i]], "err", err)
+				fmt.Errorf("Could not search for pattern pattern: %+v, contract: %+v, err: %+v", pattern, contracts[types[i]], err)
 			}
 			if matched {
 				contracts[types[i]].Libraries[pattern] = name
