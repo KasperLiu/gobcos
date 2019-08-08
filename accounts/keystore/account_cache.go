@@ -27,11 +27,12 @@ import (
 	"sync"
 	"time"
 	"gobcos/accounts"
+	"gobcos/common"
 
 	mapset "github.com/deckarep/golang-set"
 	// "github.com/ethereum/go-ethereum/accounts"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/log"
+	// "github.com/ethereum/go-ethereum/common"
+	// "github.com/ethereum/go-ethereum/log"
 )
 
 // Minimum amount of time between cache reloads. This limit applies if the platform does
@@ -235,7 +236,8 @@ func (ac *accountCache) scanAccounts() error {
 	// Scan the entire folder metadata for file changes
 	creates, deletes, updates, err := ac.fileC.scan(ac.keydir)
 	if err != nil {
-		log.Debug("Failed to reload keystore contents", "err", err)
+		// log.Debug("Failed to reload keystore contents", "err", err)
+		fmt.Printf("Failed to reload keystore contents err: %+v \n", err)
 		return err
 	}
 	if creates.Cardinality() == 0 && deletes.Cardinality() == 0 && updates.Cardinality() == 0 {
@@ -251,7 +253,8 @@ func (ac *accountCache) scanAccounts() error {
 	readAccount := func(path string) *accounts.Account {
 		fd, err := os.Open(path)
 		if err != nil {
-			log.Trace("Failed to open keystore file", "path", path, "err", err)
+			// log.Trace("Failed to open keystore file", "path", path, "err", err)
+			fmt.Printf("Failed to open keystore file err: %+v \n", err)
 			return nil
 		}
 		defer fd.Close()
@@ -262,9 +265,11 @@ func (ac *accountCache) scanAccounts() error {
 		addr := common.HexToAddress(key.Address)
 		switch {
 		case err != nil:
-			log.Debug("Failed to decode keystore key", "path", path, "err", err)
+			// log.Debug("Failed to decode keystore key", "path", path, "err", err)
+			fmt.Printf("Failed to decode keystore key path: %+v, err: %+v \n", path, err)
 		case (addr == common.Address{}):
-			log.Debug("Failed to decode keystore key", "path", path, "err", "missing or zero address")
+			// log.Debug("Failed to decode keystore key", "path", path, "err", "missing or zero address")
+			fmt.Printf("Failed to decode keystore key path: %+v, err: missing or zero address", path)
 		default:
 			return &accounts.Account{
 				Address: addr,
@@ -297,6 +302,7 @@ func (ac *accountCache) scanAccounts() error {
 	case ac.notify <- struct{}{}:
 	default:
 	}
-	log.Trace("Handled keystore changes", "time", end.Sub(start))
+	// log.Trace("Handled keystore changes", "time", end.Sub(start))
+	fmt.Printf("Handled keystore changes time: %+v", end.Sub(start))
 	return nil
 }

@@ -22,7 +22,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ethereum/go-ethereum/common"
+	"gobcos/common"
+	// "github.com/ethereum/go-ethereum/common"
 )
 
 type keyStorePlain struct {

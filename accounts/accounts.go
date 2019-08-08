@@ -21,11 +21,13 @@ import (
 	"fmt"
 	"math/big"
 	"gobcos/core/types"
+	"gobcos/common"
+	"gobcos/event"
 
-	ethereum "github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
+	// ethereum "github.com/ethereum/go-ethereum"
+	// "github.com/ethereum/go-ethereum/common"
 	// "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/event"
+	// "github.com/ethereum/go-ethereum/event"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -72,6 +74,7 @@ type Wallet interface {
 	// Close releases any resources held by an open wallet instance.
 	Close() error
 
+
 	// Accounts retrieves the list of signing accounts the wallet is currently aware
 	// of. For hierarchical deterministic wallets, the list will not be exhaustive,
 	// rather only contain the accounts explicitly pinned during account derivation.
@@ -99,7 +102,7 @@ type Wallet interface {
 	//
 	// You can disable automatic account discovery by calling SelfDerive with a nil
 	// chain state reader.
-	SelfDerive(bases []DerivationPath, chain ethereum.ChainStateReader)
+	SelfDerive(bases []DerivationPath, chain common.ChainStateReader)
 
 	// SignData requests the wallet to sign the hash of the given data
 	// It looks up the account specified either solely via its address contained within,
@@ -146,10 +149,10 @@ type Wallet interface {
 	// about which fields or actions are needed. The user may retry by providing
 	// the needed details via SignTxWithPassphrase, or by other means (e.g. unlock
 	// the account in a keystore).
-	SignTx(account Account, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error)
+	SignTx(account Account, tx *types.RawTransaction, chainID *big.Int) (*types.RawTransaction, error)
 
 	// SignTxWithPassphrase is identical to SignTx, but also takes a password
-	SignTxWithPassphrase(account Account, passphrase string, tx *types.Transaction, chainID *big.Int) (*types.Transaction, error)
+	SignTxWithPassphrase(account Account, passphrase string, tx *types.RawTransaction, chainID *big.Int) (*types.RawTransaction, error)
 }
 
 // Backend is a "wallet provider" that may contain a batch of accounts they can

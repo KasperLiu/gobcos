@@ -21,16 +21,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gobcos/rpc"
 	"math/big"
-	"gobcos/core/types"
 	"errors"
-
-	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	// "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/rlp"
+	"gobcos/common"
+	"gobcos/common/hexutil"
+	"gobcos/rpc"
+	"gobcos/core/types"
+	"gobcos/rlp"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API. 
@@ -63,118 +60,6 @@ func (gc *Client) Close() {
 	gc.c.Close()
 }
 
-// Blockchain Access
-
-// ChainID retrieves the current chain ID for transaction replay protection.
-func (gc *Client) ChainID(ctx context.Context) (*big.Int, error) {
-	var result hexutil.Big
-	err := gc.c.CallContext(ctx, &result, "eth_chainId")
-	if err != nil {
-		return nil, err
-	}
-	return (*big.Int)(&result), err
-}
-
-type rpcBlock struct {
-	Hash         common.Hash      `json:"hash"`
-	Transactions []rpcTransaction `json:"transactions"`
-	UncleHashes  []common.Hash    `json:"uncles"`
-}
-
-
-// HeaderByHash returns the block header with the given hash.
-func (gc *Client) HeaderByHash(ctx context.Context, hash common.Hash) (*types.Header, error) {
-	var head *types.Header
-	err := gc.c.CallContext(ctx, &head, "eth_getBlockByHash", hash, false)
-	if err == nil && head == nil {
-		err = ethereum.NotFound
-	}
-	return head, err
-}
-
-// HeaderByNumber returns a block header from the current canonical chain. If number is
-// nil, the latest known header is returned.
-func (gc *Client) HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error) {
-	var head *types.Header
-	err := gc.c.CallContext(ctx, &head, "eth_getBlockByNumber", toBlockNumArg(number), false)
-	if err == nil && head == nil {
-		err = ethereum.NotFound
-	}
-	return head, err
-}
-
-type rpcTransaction struct {
-	tx *types.Transaction
-	txExtraInfo
-}
-
-type txExtraInfo struct {
-	BlockNumber *string         `json:"blockNumber,omitempty"`
-	BlockHash   *common.Hash    `json:"blockHash,omitempty"`
-	From        *common.Address `json:"from,omitempty"`
-}
-
-func (tx *rpcTransaction) UnmarshalJSON(msg []byte) error {
-	if err := json.Unmarshal(msg, &tx.tx); err != nil {
-		return err
-	}
-	return json.Unmarshal(msg, &tx.txExtraInfo)
-}
-
-// TransactionCount returns the total number of transactions in the given block.
-func (gc *Client) TransactionCount(ctx context.Context, blockHash common.Hash) (uint, error) {
-	var num hexutil.Uint
-	err := gc.c.CallContext(ctx, &num, "eth_getBlockTransactionCountByHash", blockHash)
-	return uint(num), err
-}
-
-// TransactionReceipt returns the receipt of a transaction by transaction hash.
-// Note that the receipt is not available for pending transactions.
-func (gc *Client) TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
-	var r *types.Receipt
-	err := gc.c.CallContext(ctx, &r, "eth_getTransactionReceipt", txHash)
-	if err == nil {
-		if r == nil {
-			return nil, ethereum.NotFound
-		}
-	}
-	return r, err
-}
-
-func toBlockNumArg(number *big.Int) string {
-	if number == nil {
-		return "latest"
-	}
-	return hexutil.EncodeBig(number)
-}
-
-// State Access
-
-// BalanceAt returns the wei balance of the given account.
-// The block number can be nil, in which case the balance is taken from the latest known block.
-func (gc *Client) BalanceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (*big.Int, error) {
-	var result hexutil.Big
-	err := gc.c.CallContext(ctx, &result, "eth_getBalance", account, toBlockNumArg(blockNumber))
-	return (*big.Int)(&result), err
-}
-
-// StorageAt returns the value of key in the contract storage of the given account.
-// The block number can be nil, in which case the value is taken from the latest known block.
-func (gc *Client) StorageAt(ctx context.Context, account common.Address, key common.Hash, blockNumber *big.Int) ([]byte, error) {
-	var result hexutil.Bytes
-	err := gc.c.CallContext(ctx, &result, "eth_getStorageAt", account, key, toBlockNumArg(blockNumber))
-	return result, err
-}
-
-// NonceAt returns the account nonce of the given account.
-// The block number can be nil, in which case the nonce is taken from the latest known block.
-func (gc *Client) NonceAt(ctx context.Context, account common.Address, blockNumber *big.Int) (uint64, error) {
-	var result hexutil.Uint64
-	err := gc.c.CallContext(ctx, &result, "eth_getTransactionCount", account, toBlockNumArg(blockNumber))
-	return uint64(result), err
-}
-
-
 // ============================================== FISCO BCOS Blockchain Access ================================================
 
 // CodeAt returns the contract code of the given account.
@@ -189,8 +74,15 @@ func (gc *Client) CodeAt(ctx context.Context, account common.Address, blockNumbe
 
 // Filters
 
+func toBlockNumArg(number *big.Int) string {
+	if number == nil {
+		return "latest"
+	}
+	return hexutil.EncodeBig(number)
+}
+
 // FilterLogs executes a filter query.
-func (gc *Client) FilterLogs(ctx context.Context, q ethereum.FilterQuery) ([]types.Log, error) {
+func (gc *Client) FilterLogs(ctx context.Context, q common.FilterQuery) ([]types.Log, error) {
 	var result []types.Log
 	arg, err := toFilterArg(q)
 	if err != nil {
@@ -201,7 +93,7 @@ func (gc *Client) FilterLogs(ctx context.Context, q ethereum.FilterQuery) ([]typ
 }
 
 // SubscribeFilterLogs subscribes to the results of a streaming filter query.
-func (gc *Client) SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQuery, ch chan<- types.Log) (ethereum.Subscription, error) {
+func (gc *Client) SubscribeFilterLogs(ctx context.Context, q common.FilterQuery, ch chan<- types.Log) (common.Subscription, error) {
 	arg, err := toFilterArg(q)
 	if err != nil {
 		return nil, err
@@ -209,7 +101,7 @@ func (gc *Client) SubscribeFilterLogs(ctx context.Context, q ethereum.FilterQuer
 	return gc.c.EthSubscribe(ctx, ch, "logs", arg)
 }
 
-func toFilterArg(q ethereum.FilterQuery) (interface{}, error) {
+func toFilterArg(q common.FilterQuery) (interface{}, error) {
 	arg := map[string]interface{}{
 		"address": q.Addresses,
 		"topics":  q.Topics,
@@ -248,7 +140,7 @@ type callResult struct {
 }
 
 // CallContract invoke the call method of rpc api
-func (gc *Client) CallContract(ctx context.Context, msg ethereum.CallMsg, blockNumber *big.Int) ([]byte, error) {
+func (gc *Client) CallContract(ctx context.Context, msg common.CallMsg, blockNumber *big.Int) ([]byte, error) {
 	var hex hexutil.Bytes
 	var cr *callResult
 	err := gc.c.CallContext(ctx, &cr, "call", gc.groupID, toCallArg(msg))
@@ -261,7 +153,7 @@ func (gc *Client) CallContract(ctx context.Context, msg ethereum.CallMsg, blockN
 
 // PendingCallContract executes a message call transaction using the EVM.
 // The state seen by the contract call is the pending state.
-func (gc *Client) PendingCallContract(ctx context.Context, msg ethereum.CallMsg) ([]byte, error) {
+func (gc *Client) PendingCallContract(ctx context.Context, msg common.CallMsg) ([]byte, error) {
 	var hex hexutil.Bytes
 	err := gc.c.CallContext(ctx, &hex, "call", gc.groupID, toCallArg(msg))
 	if err != nil {
@@ -283,7 +175,7 @@ func (gc *Client) SendTransaction(ctx context.Context, tx *types.RawTransaction)
 	return gc.c.CallContext(ctx, nil, "sendRawTransaction", gc.groupID, common.ToHex(data))
 }
 
-func toCallArg(msg ethereum.CallMsg) interface{} {
+func toCallArg(msg common.CallMsg) interface{} {
 	arg := map[string]interface{}{
 		"from": msg.From.String(),
 		"to":   msg.To.String(),

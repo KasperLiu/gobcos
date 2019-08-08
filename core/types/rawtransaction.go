@@ -6,11 +6,16 @@ import (
 	"io"
 	"math/big"
 	"sync/atomic"
+	"gobcos/common"
+	"gobcos/common/hexutil"
+	"gobcos/crypto"
+	"gobcos/rlp"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/rlp"
+	// "github.com/ethereum/go-ethereum/common"
+	// "github.com/ethereum/go-ethereum/common/hexutil"
+	// "github.com/ethereum/go-ethereum/crypto"
+	// "github.com/ethereum/go-ethereum/rlp"
+	"golang.org/x/crypto/sha3"
 )
 
 //go:generate gencodec -type rawtxdata -field-override txdataMarshaling -out gen_rawtx_json.go
@@ -125,6 +130,15 @@ func (tx *RawTransaction) Protected() bool {
 	return isProtectedV(tx.data.V)
 }
 
+func isProtectedV(V *big.Int) bool {
+	if V.BitLen() <= 8 {
+		v := V.Uint64()
+		return v != 27 && v != 28
+	}
+	// anything not 27 or 28 is considered protected
+	return true
+}
+
 // EncodeRLP implements rlp.Encoder
 func (tx *RawTransaction) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, &tx.data)
@@ -166,7 +180,7 @@ func (tx *RawTransaction) UnmarshalJSON(input []byte) error {
 			V = byte(dec.V.Uint64() - 27)
 		}
 		if !crypto.ValidateSignatureValues(V, dec.R, dec.S, false) {
-			return ErrInvalidSig
+			return ErrInvalidRawSig
 		}
 	}
 
@@ -202,6 +216,13 @@ func (tx *RawTransaction) Hash() common.Hash {
 	return v
 }
 
+func rlpHash(x interface{}) (h common.Hash) {
+	hw := sha3.NewLegacyKeccak256()
+	rlp.Encode(hw, x)
+	hw.Sum(h[:0])
+	return h
+}
+
 // Size returns the true RLP encoded storage size of the transaction, either by
 // encoding and returning it, or returning a previsouly cached value.
 func (tx *RawTransaction) Size() common.StorageSize {
@@ -213,6 +234,14 @@ func (tx *RawTransaction) Size() common.StorageSize {
 	tx.size.Store(common.StorageSize(c))
 	return common.StorageSize(c)
 }
+
+type writeCounter common.StorageSize
+
+func (c *writeCounter) Write(b []byte) (int, error) {
+	*c += writeCounter(len(b))
+	return len(b), nil
+}
+
 
 // AsMessage returns the transaction as a core.Message.
 //

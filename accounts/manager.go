@@ -21,7 +21,8 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/ethereum/go-ethereum/event"
+	"gobcos/event"
+	// "github.com/ethereum/go-ethereum/event"
 )
 
 // Config contains the settings of the global account manager.

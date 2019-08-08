@@ -91,20 +91,15 @@ import (
 	"gobcos/accounts/abi"
 	"gobcos/accounts/abi/bind"
 	"gobcos/core/types"
-
-	ethereum "github.com/ethereum/go-ethereum"
-	// "github.com/ethereum/go-ethereum/accounts/abi"
-	// "github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/common"
-	// "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/event"
+	"gobcos/common"
+	"gobcos/event"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var (
 	_ = big.NewInt
 	_ = strings.NewReader
-	_ = ethereum.NotFound
+	_ = common.NotFound
 	_ = abi.U256
 	_ = bind.Bind
 	_ = common.Big1
@@ -364,7 +359,7 @@ var (
 			event    string              // Event name to use for unpacking event data
 
 			logs chan types.Log        // Log channel receiving the found contract events
-			sub  ethereum.Subscription // Subscription for errors, completion and termination
+			sub  common.Subscription // Subscription for errors, completion and termination
 			done bool                  // Whether the subscription completed delivering logs
 			fail error                 // Occurred error to stop iteration
 		}

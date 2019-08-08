@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"math/big"
+	"gobcos/common"
+	"gobcos/common/hexutil"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
+	// "github.com/ethereum/go-ethereum/common"
+	// "github.com/ethereum/go-ethereum/common/hexutil"
 )
 
 var _ = (*rawtxdataMarshaling)(nil)

@@ -20,8 +20,10 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/crypto"
+	"gobcos/common/hexutil"
+	"gobcos/crypto"
+	// "github.com/ethereum/go-ethereum/common/hexutil"
+	// "github.com/ethereum/go-ethereum/crypto"
 )
 
 type bytesBacked interface {
@@ -91,14 +93,14 @@ func (b *Bloom) UnmarshalText(input []byte) error {
 	return hexutil.UnmarshalFixedText("Bloom", input, b[:])
 }
 
-func CreateBloom(receipts Receipts) Bloom {
-	bin := new(big.Int)
-	for _, receipt := range receipts {
-		bin.Or(bin, LogsBloom(receipt.Logs))
-	}
+// func CreateBloom(receipts Receipts) Bloom {
+// 	bin := new(big.Int)
+// 	for _, receipt := range receipts {
+// 		bin.Or(bin, LogsBloom(receipt.Logs))
+// 	}
 
-	return BytesToBloom(bin.Bytes())
-}
+// 	return BytesToBloom(bin.Bytes())
+// }
 
 func LogsBloom(logs []*Log) *big.Int {
 	bin := new(big.Int)
