@@ -70,19 +70,16 @@ type PendingContractCaller interface {
 type ContractTransactor interface {
 	// PendingCodeAt returns the code of the given account in the pending state.
 	PendingCodeAt(ctx context.Context, account common.Address) ([]byte, error)
-	// PendingNonceAt retrieves the current pending nonce associated with an account.
-	PendingNonceAt(ctx context.Context, account common.Address) (uint64, error)
-	// SuggestGasPrice retrieves the currently suggested gas price to allow a timely
-	// execution of a transaction.
-	SuggestGasPrice(ctx context.Context) (*big.Int, error)
-	// EstimateGas tries to estimate the gas needed to execute a specific
-	// transaction based on the current pending state of the backend blockchain.
-	// There is no guarantee that this is the true gas limit requirement as other
-	// transactions may be added or removed by miners, but it should provide a basis
-	// for setting a reasonable default.
-	EstimateGas(ctx context.Context, call ethereum.CallMsg) (gas uint64, err error)
 	// SendTransaction injects the transaction into the pending pool for execution.
-	SendTransaction(ctx context.Context, tx *types.Transaction) error
+	SendTransaction(ctx context.Context, tx *types.RawTransaction) error
+	// GetBlockLimit returns the blocklimit for current blocknumber
+	GetBlockLimit(ctx context.Context) (*big.Int, error)
+	// GetGroupID returns the groupID of the client
+	GetGroupID() (*big.Int)
+	// GetChainID returns the chainID of the blockchain
+	GetChainID(ctx context.Context) (*big.Int, error)
+	// GetContractAddress returns the contract address once it was deployed
+    GetContractAddress(ctx context.Context, txhash string) (common.Address, error)
 }
 
 // ContractFilterer defines the methods needed to access log events using one-off

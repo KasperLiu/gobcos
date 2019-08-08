@@ -38,6 +38,11 @@ type sigCache struct {
 	from   common.Address
 }
 
+type rawSigCache struct {
+	signer RawSigner
+	from   common.Address
+}
+
 // MakeSigner returns a Signer based on the given chain config and block number.
 func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
 	var signer Signer
@@ -52,8 +57,31 @@ func MakeSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
 	return signer
 }
 
+func MakeRawSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
+	var signer Signer
+	switch {
+	case config.IsEIP155(blockNumber):
+		signer = NewEIP155Signer(config.ChainID)
+	case config.IsHomestead(blockNumber):
+		signer = HomesteadSigner{}
+	default:
+		signer = FrontierSigner{}
+	}
+	return signer
+}
+
 // SignTx signs the transaction using the given signer and private key
 func SignTx(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, error) {
+	h := s.Hash(tx)
+	sig, err := crypto.Sign(h[:], prv)
+	if err != nil {
+		return nil, err
+	}
+	return tx.WithSignature(s, sig)
+}
+
+// SignRawTx signs the transaction using the given signer and private key
+func SignRawTx(tx *RawTransaction, s RawSigner, prv *ecdsa.PrivateKey) (*RawTransaction, error) {
 	h := s.Hash(tx)
 	sig, err := crypto.Sign(h[:], prv)
 	if err != nil {
@@ -88,6 +116,26 @@ func Sender(signer Signer, tx *Transaction) (common.Address, error) {
 	return addr, nil
 }
 
+// ================= kasperliu =======================
+func RawSender(signer RawSigner, tx *RawTransaction) (common.Address, error) {
+	if sc := tx.from.Load(); sc != nil {
+		sigCache := sc.(rawSigCache)
+		// If the signer used to derive from in a previous
+		// call is not the same as used current, invalidate
+		// the cache.
+		if sigCache.signer.Equal(signer) {
+			return sigCache.from, nil
+		}
+	}
+
+	addr, err := signer.Sender(tx)
+	if err != nil {
+		return common.Address{}, err
+	}
+	tx.from.Store(rawSigCache{signer: signer, from: addr})
+	return addr, nil
+}
+
 // Signer encapsulates transaction signature handling. Note that this interface is not a
 // stable API and may change at any time to accommodate new protocol rules.
 type Signer interface {
@@ -100,6 +148,19 @@ type Signer interface {
 	Hash(tx *Transaction) common.Hash
 	// Equal returns true if the given signer is the same as the receiver.
 	Equal(Signer) bool
+}
+
+// RawSigner encapsulates raw transaction signature handling. Note that this interface is not a
+// stable API and may change at any time to accommodate new protocol rules.
+type RawSigner interface {
+    // ====================== kasperliu ======================
+	Sender(tx *RawTransaction) (common.Address, error)
+	// ====================== kasperliu ======================
+	SignatureValues(tx *RawTransaction, sig []byte) (r, s, v *big.Int, err error)
+	// ====================== kasperliu ======================
+	Hash(tx *RawTransaction) common.Hash
+	// Equal returns true if the given signer is the same as the receiver.
+	Equal(RawSigner) bool
 }
 
 // EIP155Transaction implements Signer using the EIP155 rules.
@@ -164,6 +225,72 @@ func (s EIP155Signer) Hash(tx *Transaction) common.Hash {
 	})
 }
 
+// =========================== kasperliu =========================
+
+// EIP155Transaction implements Signer using the EIP155 rules.
+type EIP155RawSigner struct {
+	chainId, chainIdMul *big.Int
+}
+
+func NewEIP155RawSigner(chainId *big.Int) EIP155RawSigner {
+	if chainId == nil {
+		chainId = new(big.Int)
+	}
+	return EIP155RawSigner{
+		chainId:    chainId,
+		chainIdMul: new(big.Int).Mul(chainId, big.NewInt(2)),
+	}
+}
+
+func (s EIP155RawSigner) Equal(s2 RawSigner) bool {
+	eip155, ok := s2.(EIP155RawSigner)
+	return ok && eip155.chainId.Cmp(s.chainId) == 0
+}
+
+func (s EIP155RawSigner) Sender(tx *RawTransaction) (common.Address, error) {
+	if !tx.Protected() {
+		return HomesteadRawSigner{}.Sender(tx)
+	}
+	if tx.ChainId().Cmp(s.chainId) != 0 {
+		return common.Address{}, ErrInvalidChainId
+	}
+	V := new(big.Int).Sub(tx.data.V, s.chainIdMul)
+	V.Sub(V, big8)
+	return recoverPlain(s.Hash(tx), tx.data.R, tx.data.S, V, true)
+}
+
+// SignatureValues returns signature values. This signature
+// needs to be in the [R || S || V] format where V is 0 or 1.
+func (s EIP155RawSigner) SignatureValues(tx *RawTransaction, sig []byte) (R, S, V *big.Int, err error) {
+	R, S, V, err = HomesteadRawSigner{}.SignatureValues(tx, sig)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	if s.chainId.Sign() != 0 {
+		V = big.NewInt(int64(sig[64] + 35))
+		V.Add(V, s.chainIdMul)
+	}
+	return R, S, V, nil
+}
+
+// Hash returns the hash to be signed by the sender.
+// It does not uniquely identify the transaction.
+func (s EIP155RawSigner) Hash(tx *RawTransaction) common.Hash {
+	return rlpHash([]interface{}{
+		tx.data.AccountNonce,
+		tx.data.Price,
+		tx.data.GasLimit,
+		tx.data.BlockLimit,
+		tx.data.Recipient,
+		tx.data.Amount,
+		tx.data.Payload,
+		tx.data.ChainId,
+		tx.data.GroupId,
+		tx.data.ExtraData,
+		s.chainId, uint(0), uint(0),
+	})
+}
+
 // HomesteadTransaction implements TransactionInterface using the
 // homestead rules.
 type HomesteadSigner struct{ FrontierSigner }
@@ -180,6 +307,24 @@ func (hs HomesteadSigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v 
 }
 
 func (hs HomesteadSigner) Sender(tx *Transaction) (common.Address, error) {
+	return recoverPlain(hs.Hash(tx), tx.data.R, tx.data.S, tx.data.V, true)
+}
+
+// ======================== kasperliu =====================
+type HomesteadRawSigner struct { FrontierRawSigner }
+
+func (s HomesteadRawSigner) Equal(s2 RawSigner) bool {
+	_, ok := s2.(HomesteadRawSigner)
+	return ok
+}
+
+// SignatureValues returns signature values. This signature
+// needs to be in the [R || S || V] format where V is 0 or 1.
+func (hs HomesteadRawSigner) SignatureValues(tx *RawTransaction, sig []byte) (r, s, v *big.Int, err error) {
+	return hs.FrontierRawSigner.SignatureValues(tx, sig)
+}
+
+func (hs HomesteadRawSigner) Sender(tx *RawTransaction) (common.Address, error) {
 	return recoverPlain(hs.Hash(tx), tx.data.R, tx.data.S, tx.data.V, true)
 }
 
@@ -216,6 +361,45 @@ func (fs FrontierSigner) Hash(tx *Transaction) common.Hash {
 }
 
 func (fs FrontierSigner) Sender(tx *Transaction) (common.Address, error) {
+	return recoverPlain(fs.Hash(tx), tx.data.R, tx.data.S, tx.data.V, false)
+}
+
+
+// ===================== kasperliu =======================
+type FrontierRawSigner struct{}
+
+func (s FrontierRawSigner) Equal(s2 RawSigner) bool {
+	_, ok := s2.(FrontierRawSigner)
+	return ok
+}
+
+// SignatureValues returns signature values. This signature
+// needs to be in the [R || S || V] format where V is 0 or 1.
+func (fs FrontierRawSigner) SignatureValues(tx *RawTransaction, sig []byte) (r, s, v *big.Int, err error) {
+	if len(sig) != 65 {
+		panic(fmt.Sprintf("wrong size for signature: got %d, want 65", len(sig)))
+	}
+	r = new(big.Int).SetBytes(sig[:32])
+	s = new(big.Int).SetBytes(sig[32:64])
+	v = new(big.Int).SetBytes([]byte{sig[64] + 27})
+	return r, s, v, nil
+}
+
+// Hash returns the hash to be signed by the sender.
+// It does not uniquely identify the transaction.
+func (fs FrontierRawSigner) Hash(tx *RawTransaction) common.Hash {
+	return rlpHash([]interface{}{
+		tx.data.AccountNonce,
+		tx.data.Price,
+		tx.data.GasLimit,
+		tx.data.BlockLimit,
+		tx.data.Recipient,
+		tx.data.Amount,
+		tx.data.Payload,
+	})
+}
+
+func (fs FrontierRawSigner) Sender(tx *RawTransaction) (common.Address, error) {
 	return recoverPlain(fs.Hash(tx), tx.data.R, tx.data.S, tx.data.V, false)
 }
 
