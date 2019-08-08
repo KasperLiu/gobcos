@@ -22,15 +22,11 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	
 	"gobcos/accounts/abi/bind"
 	"gobcos/cmd/utils"
 	"gobcos/common/compiler"
 	"gobcos/crypto"
-
-	// "github.com/ethereum/go-ethereum/cmd/utils"
-	// "github.com/ethereum/go-ethereum/common/compiler"
-	// "github.com/ethereum/go-ethereum/crypto"
-	// "github.com/ethereum/go-ethereum/log"
 	"gopkg.in/urfave/cli.v1"
 )
 

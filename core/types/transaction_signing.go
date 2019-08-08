@@ -21,13 +21,9 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+
 	"gobcos/common"
 	"gobcos/crypto"
-
-
-	// "github.com/ethereum/go-ethereum/common"
-	// "github.com/ethereum/go-ethereum/crypto"
-	// "github.com/ethereum/go-ethereum/params"
 )
 
 var (
@@ -40,20 +36,6 @@ type rawSigCache struct {
 	signer RawSigner
 	from   common.Address
 }
-
-
-// func MakeRawSigner(config *params.ChainConfig, blockNumber *big.Int) Signer {
-// 	var signer Signer
-// 	switch {
-// 	case config.IsEIP155(blockNumber):
-// 		signer = NewEIP155Signer(config.ChainID)
-// 	case config.IsHomestead(blockNumber):
-// 		signer = HomesteadSigner{}
-// 	default:
-// 		signer = FrontierSigner{}
-// 	}
-// 	return signer
-// }
 
 // SignRawTx signs the transaction using the given signer and private key
 func SignRawTx(tx *RawTransaction, s RawSigner, prv *ecdsa.PrivateKey) (*RawTransaction, error) {
@@ -94,17 +76,18 @@ func RawSender(signer RawSigner, tx *RawTransaction) (common.Address, error) {
 // RawSigner encapsulates raw transaction signature handling. Note that this interface is not a
 // stable API and may change at any time to accommodate new protocol rules.
 type RawSigner interface {
-    // ====================== kasperliu ======================
+    // Sender returns the sender address of the transaction.
 	Sender(tx *RawTransaction) (common.Address, error)
-	// ====================== kasperliu ======================
+	// SignatureValues returns the raw R, S, V values corresponding to the
+	// given signature.
 	SignatureValues(tx *RawTransaction, sig []byte) (r, s, v *big.Int, err error)
-	// ====================== kasperliu ======================
+	// Hash returns the hash to be signed.
 	Hash(tx *RawTransaction) common.Hash
 	// Equal returns true if the given signer is the same as the receiver.
 	Equal(RawSigner) bool
 }
 
-// EIP155Transaction implements Signer using the EIP155 rules.
+// EIP155ERawSinger implements Signer using the EIP155 rules.
 type EIP155RawSigner struct {
 	chainId, chainIdMul *big.Int
 }

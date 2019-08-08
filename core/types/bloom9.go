@@ -22,8 +22,6 @@ import (
 
 	"gobcos/common/hexutil"
 	"gobcos/crypto"
-	// "github.com/ethereum/go-ethereum/common/hexutil"
-	// "github.com/ethereum/go-ethereum/crypto"
 )
 
 type bytesBacked interface {

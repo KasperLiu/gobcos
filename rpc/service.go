@@ -26,8 +26,6 @@ import (
 	"sync"
 	"unicode"
 	"unicode/utf8"
-
-	// "github.com/ethereum/go-ethereum/log"
 )
 
 var (

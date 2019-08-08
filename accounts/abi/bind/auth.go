@@ -21,18 +21,12 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+
 	"gobcos/accounts"
 	"gobcos/accounts/keystore"
 	"gobcos/core/types"
 	"gobcos/crypto"
 	"gobcos/common"
-
-	// "github.com/ethereum/go-ethereum/accounts"
-	// "github.com/ethereum/go-ethereum/accounts/keystore"
-	// "github.com/ethereum/go-ethereum/common"
-	// "github.com/ethereum/go-ethereum/core/types"
-	// "github.com/ethereum/go-ethereum/accounts/external"
-	// "github.com/ethereum/go-ethereum/crypto"
 )
 
 // NewTransactor is a utility method to easily create a transaction signer from
