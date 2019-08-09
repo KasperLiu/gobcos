@@ -313,6 +313,18 @@ func main(){
 }
 ```
 
+### 加载智能合约
+在部署完智能合约后，获取到合约的地址，在进行合约查询以及写入时，需要先加载智能合约：
+
+```go
+address := common.HexToAddress("contract addree in hex") // 0x147B8eb97fD247D06C4006D269c90C1908Fb5D54
+instance, err := store.NewStore(address, client)
+if err != nil {
+    log.Fatal(err)
+}
+_ = instance
+```
+
 ### 查询智能合约
 
 在部署过程中设置的`Store.sol`合约中有一个名为`version`的全局变量。 因为它是公开的，这意味着它们将成为我们自动创建的`getter`函数。 常量和`view`函数也接受`bind.CallOpts`作为第一个参数：
