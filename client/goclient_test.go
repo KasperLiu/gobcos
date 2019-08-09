@@ -7,7 +7,7 @@ import (
 
 func GetClient(t *testing.T) (*Client) {
 	// RPC API
-	c, err := Dial("http://localhost:8545", 1)
+	c, err := Dial("http://localhost:8545", 1)  // change to your RPC and groupID
 	if err != nil {
 		t.Fatalf("can not dial to the RPC API: %v", err)
 	}
@@ -67,16 +67,16 @@ func TestPBFTView(t *testing.T) {
 // 	t.Logf("current groupID: \n%s", groupid)
 // }
 
-func TestChainID(t *testing.T) {
-    c := GetClient(t)
-	// cannot use big.NewInt to construct json request
-	// TODO: analysis the ethereum's big.NewInt
-	chainid, err := c.GetChainID(context.Background())
-	if err != nil {
-		t.Fatalf("Chain ID not found: %v", err)
-	}
-	t.Logf("Chain ID: \n%s", chainid)
-}
+// func TestChainID(t *testing.T) {
+//     c := GetClient(t)
+// 	// cannot use big.NewInt to construct json request
+// 	// TODO: analysis the ethereum's big.NewInt
+// 	chainid, err := c.GetChainID(context.Background())
+// 	if err != nil {
+// 		t.Fatalf("Chain ID not found: %v", err)
+// 	}
+// 	t.Logf("Chain ID: \n%s", chainid)
+// }
 
 // func TestSealerList(t *testing.T) {
 // 	c := GetClient(t)
@@ -250,16 +250,16 @@ func TestChainID(t *testing.T) {
 // 	t.Logf("transaction receipt by transaction hash:\n%s", raw)
 // }
 
-func TestContractAddress(t *testing.T) {
-	c := GetClient(t)
-	txhash := "0x4a2a4d878318a83491383d29d6550c088bdcf692e3055b060342dcd85177c621"
-	ca, err := c.GetContractAddress(context.Background(), txhash)
-	if err != nil {
-		t.Fatalf("ContractAddress not found: %v", err)
-	}
+// func TestContractAddress(t *testing.T) {
+// 	c := GetClient(t)
+// 	txhash := "0x4a2a4d878318a83491383d29d6550c088bdcf692e3055b060342dcd85177c621"
+// 	ca, err := c.GetContractAddress(context.Background(), txhash)
+// 	if err != nil {
+// 		t.Fatalf("ContractAddress not found: %v", err)
+// 	}
 
-	t.Logf("ContractAddress: \n%s", ca.String())
-}
+// 	t.Logf("ContractAddress: \n%s", ca.String())
+// }
 
 // func TestPendingTransactions(t *testing.T) {
 // 	c := GetClient(t)

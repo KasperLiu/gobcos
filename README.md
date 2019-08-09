@@ -1,22 +1,24 @@
 # gobcos
-Golang Client For FISCO BCOS
+Golang Client For FISCO BCOS 2.0.0
 
-FISCO BCOS Go语言版本的SDK，主要的功能有：
+FISCO BCOS Go语言版本的SDK，基于以太坊进行改进，主要的功能有：
 
-- FISCO BCOS RPC API 服务
-- `Solidity`合约编译为Go合约文件
+- FISCO BCOS 2.0.0 JSON-RPC的Golang API 服务
+- `Solidity`合约编译为Go文件
+- 部署、查询、写入智能合约
 
 # 环境准备
 
-- [Golang](https://golang.org/), 版本需不低于`1.12.6`，本项目采用`go module`进行包管理。
-- [FISCO BCOS 2.0.0](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/), **需要提前运行** FISCO BCOS 区块链平台
+- [Golang](https://golang.org/), 版本需不低于`1.12.6`，本项目采用`go module`进行包管理。具体可查阅[Using Go Modules](https://blog.golang.org/using-go-modules)
+- [FISCO BCOS 2.0.0](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/), **需要提前运行** FISCO BCOS 区块链平台，可参考[安装搭建](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/installation.html#fisco-bcos)
+- Solidity编译器，默认[0.4.25版本](https://github.com/ethereum/solidity/releases/tag/v0.4.25)
 
 
-# 代码运行
+# 功能使用
 
-### RPC API 测试
+## RPC API 测试
 
-此部分只要对项目的RPC API接口调用进行测试，以确定是否能顺利连接FISCO BCOS以获取区块链信息。
+此部分只对项目代码中的RPC API接口调用进行测试，以确定是否能顺利连接FISCO BCOS 2.0.0节点以获取区块链信息。
 
 首先需要拉取代码：
 
@@ -24,42 +26,97 @@ FISCO BCOS Go语言版本的SDK，主要的功能有：
 git clone https://github.com/KasperLiu/gobcos.git
 ```
 
-然后切换到远程`eht-dev`分支：
-
-```shell
-git checkout -b eth-dev origin/eth-dev
-```
-
-进行代码测试前，请先按照实际部署的RPC URL更改`goclient_test.go`中的默认FISCO BCOS RPC连接以及群组ID：
+进行代码测试前，请先按照实际部署节点的RPC URL更改`client/goclient_test.go`中的默认的FISCO BCOS RPC连接以及群组ID：
 ```go
 func GetClient(t *testing.T) (*Client) {
 	// RPC API
-	c, err := Dial("http://localhost:8545", 1) // your RPC API
+	c, err := Dial("http://localhost:8545", 1) // change it to your RPC IP & port, groupID that you want to connect
 	if err != nil {
 		t.Fatalf("can not dial to the RPC API: %v", err)
 	}
 	return c
 }
 ```
-测试代码默认开启的测试函数为`GetClientVersion, GetBlockNumber, GetPBFTView`，其余函数需去除注释并更改为实际存在的数据后才能执行。
+测试代码默认开启的测试函数为`GetClientVersion, GetBlockNumber, GetPBFTView`，其余函数需去除注释并更改为实际存在的数据后才能执行。如：
 
-执行测试代码的命令为：
+```go
+// GetBlockHashByNumber returns the block hash by its block number
+func TestBlockHshByNumber(t *testing.T) {
+	c := GetClient(t)
+	// provide a specific blocknumber
+	bnum := "0x1"
+	raw, err := c.GetBlockHashByNumber(context.Background(), bnum)
+	if err != nil {
+		t.Fatalf("block hash not found: %v", err)
+	}
+
+	t.Logf("block hash by number:\n%s", raw)
+}
+```
+
+执行RPC client的测试代码命令为：
 
 ```shell
 go test -v -count=1 ./client
 ```
 
-### Solidity合约编译为Go文件
+## JSON-RPC API调用
 
-这部分主要包含了三个流程：
+在测试成功后，可以在用户的工程项目中引用gobcos的RPC客户端，以调用RPC方法，所有的方法返回的是`[]byte`，用户可根据实际需要做进一步的JSON解析：
+
+```go
+import "github.com/KasperLiu/gobcos/client"
+```
+
+下面假设有一个`block.go`文件需要获取FISCO BCOS 区块链的某一个区块的信息，则在引入客户端代码包后首先需要初始化客户端，提供需要连接的FISCO BCOS区块链的RPC URL及群组ID：
+
+```go
+package main
+import (
+    "context"
+    "github.com/KasperLiu/gobcos/client"
+)
+
+func main() {
+    client, err := client.Dial("http://localhost:8545", groupID) # change to your RPC URL and GroupID
+	if err != nil {
+    	// handle err
+	}
+}
+```
+
+然后可按照FISCO BCOS的[RPC API文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/api.html#)进行区块信息查询，需要注意的是，客服端的方法调用需要更改为大写字母`Get`：
+
+```go
+blockHash := "0xc0b21d064b97bafda716e07785fe8bb20cc23506bb980f12c7f7a4f4ef50ce30" # fake hash
+includeTx := false # only display the transaction hash
+block, err := client.GetBlockByHash(context.BackGround(), blockHash, includeTx) # invoke "getBlockByHash“
+if err != nil {
+    // handle err
+}
+```
+
+若要在代码的后续使用中获取其他群组的区块信息，则可以直接调用客户端的`SetGroupID`方法进行动态切换，如：
+
+```go
+// switch to other group
+client.SetGroupID(otherGroupID)
+client.GetBlockNumber(context.BackGround()) # get the lastest block number of the otherGroupID
+```
+
+## Solidity合约编译为Go文件
+
+在利用SDK进行项目开发时，对智能合约进行操作时需要将Solidity智能合约利用gobcos的`abigen`工具转换为`Go`文件代码。整体上主要包含了五个流程：
 
 - 准备需要编译的智能合约
 - 配置好相应版本的`solc`编译器
 - 构建gobcos的合约编译工具`abigen`
 - 编译生成go文件
-- 调用go文件进行合约测试
+- 使用生成的go文件进行合约调用
 
-1.提供一份简单的智能合约`Store.sol`如下：
+下面的内容作为一个示例进行使用介绍。
+
+1.提供一份简单的样例智能合约`Store.sol`如下:
 
 ```solidity
 pragma solidity ^0.4.25;
@@ -92,23 +149,239 @@ solc --version
 3.构建`gobcos`的代码生成工具`abigen`
 
 ```bash
-git clone https://github.com/KasperLiu/gobcos.git # 下载gobcos代码
-git checkout -b eth-dev origin/eth-dev # 切分分支
+git clone https://github.com/KasperLiu/gobcos.git # 下载gobcos代码，如已下载请跳过
+cd gobcos # 进入代码目录
 go build ./cmd/abigen # 编译生成abigen工具
 ```
 
-执行命令后，检查目录下是否存在`abigen`
+执行命令后，检查根目录下是否存在`abigen`，并将生成的`abigen`以及所准备的智能合约`Store.sol`放置在一个新的目录下：
 
-4.编译生成go文件，首先需要先利用`solc`将合约文件生成`abi`和`bin`文件，以前面所提供的`Store.sol`为例：
-
-```bash
-solc --bin -o ./ Store.sol
-sloc --abi -o ./ Store.sol
+```
+mkdir ../newdir && cp ./abigen ../newdir && cd ../newdir
+# cp your/Store.sol path/to/newdir
 ```
 
-此时`Store.sol`目录下会生成`Store.bin`和`Store.abi`。此时利用`abigen`工具将`Store.bin`和`Store.abi`转换成`Store.go`：
+4.编译生成go文件，先利用`solc`将合约文件生成`abi`和`bin`文件，以前面所提供的`Store.sol`为例：
 
 ```bash
-abigen --bin=Store.bin --abi=Store.abi --pkg=store --out=Store.go
+solc --bin -o ./ Store.sol && solc --abi -o ./ Store.sol
 ```
 
+`Store.sol`目录下会生成`Store.bin`和`Store.abi`。此时利用`abigen`工具将`Store.bin`和`Store.abi`转换成`Store.go`：
+
+```bash
+./abigen --bin=Store.bin --abi=Store.abi --pkg=store --out=Store.go
+```
+
+最后目录下面存在以下文件：
+
+```bash
+>>ls
+abigen  Store.abi  Store.bin  Store.go  Store.sol
+```
+
+5.调用生成的`Store.go`文件进行合约调用
+
+至此，合约已成功转换为go文件，用户可根据此文件在项目中利用SDK进行合约操作。具体的使用可参阅下一节。
+
+## 部署、查询、写入智能合约
+
+此部分承接上一节的内容，同时也简单涵盖了SDK的合约使用部分以及账户私钥的加载。
+
+### 创建外部账户
+
+SDK发送交易需要一个外部账户，导入gobcos的`crypto`包，该包提供用于生成随机私钥的`GenerateKey`方法：
+
+```go
+privateKey, err := crypto.GenerateKey()
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+然后我们可以通过导入golang`crypto/ecdsa`包并使用`FromECDSA`方法将其转换为字节：
+
+```go
+privateKeyBytes := crypto.FromECDSA(privateKey)
+```
+
+我们现在可以使用gobcos的`common/hexutil`包将它转换为十六进制字符串，该包提供了一个带有字节切片的`Encode`方法。 然后我们在十六进制编码之后删除“0x”。
+
+```go
+fmt.Println(hexutil.Encode(privateKeyBytes)[2:])
+```
+
+这就是`用于签署交易的私钥，将被视为密码，永远不应该被共享给别人`。
+
+由于公钥是从私钥派生的，加密私钥具有一个返回公钥的`Public`方法：
+
+```go
+publicKey := privateKey.Public()
+```
+
+将其转换为十六进制的过程与我们使用转化私钥的过程类似。 我们剥离了`0x`和前2个字符`04`，它始终是EC前缀，不是必需的。
+
+```go
+publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+if !ok {
+    log.Fatal("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+}
+
+publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
+fmt.Println(hexutil.Encode(publicKeyBytes)[4:])
+```
+
+现在我们拥有公钥，就可以轻松生成你经常看到的公共地址。 加密包里有一个`PubkeyToAddress`方法，它接受一个ECDSA公钥，并返回公共地址。
+
+```go
+address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+fmt.Println(address) // 0x96216849c49358B10257cb55b28eA603c874b05E
+```
+
+公共地址可以查询合约信息。
+
+整体的代码示例为：
+
+```go
+import (
+	"crypto/ecdsa"
+    "fmt"
+    "log"
+	"github.com/KasperLiu/gobcos/crypto"
+	"github.com/KasperLiu/gobcos/common/hexutil"
+)
+
+func main() {
+	privateKey, err := crypto.GenerateKey()
+	if err != nil {
+  		log.Fatal(err)
+	}
+	privateKeyBytes := crypto.FromECDSA(privateKey)
+	fmt.Println(hexutil.Encode(privateKeyBytes)[2:]) // privateKey in hex
+	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+	if !ok {
+  		log.Fatal("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+	}
+
+	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
+	fmt.Println(hexutil.Encode(publicKeyBytes)[4:])  // publicKey in hex without "0x"
+    address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
+	fmt.Println(address)  // account address
+}
+```
+
+### 部署智能合约
+
+首先在利用`abigen`生成的`Store.go`文件下，创建一个新的`contract_load.go`文件用来调用`Store.go`文件，并创建一个新的文件夹来放置`Store.go`以方便调用，同时利用`go mod`进行包管理，初始化为一个`contract`包：
+
+```bash
+mdkir testfile
+mv ./Store.go testfile
+touch contract.go
+go mod init contract
+```
+
+此时目录下会生成`go.mod`包管理文件。而在`contract.go`部署合约之前，需要先从`gobcos`中导入`accounts/abi/bind`包，然后调用传入私钥的`NewKeyedTransactor`：
+
+```go 
+package main
+
+import (
+    "fmt"
+	"github.com/KasperLiu/gobcos/client"
+	"github.com/KasperLiu/gobcos/accounts/abi/bin"
+    store "contranct/testfile" // import Store.go
+)
+
+func main(){
+    client, err := client.Dial("http://localhost:8545", 1)
+    if err != nil {
+		log.Fatal(err)
+	}
+    privateKey, err := crypto.HexToECDSA("input your privateKey in hex without \"0x\"")
+    if err != nil {
+        log.Fatal(err)
+    }
+    auth := bind.NewKeyedTransactor(privateKey) // input your privateKey
+    input := "Store deployment 1.0"
+    address, tx, instance, err := store.DeployHelloworldfi(auth, client, input)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println("contract address: ", address.Hex())  // the address should be saved
+    fmt.Println("transaction hash: ", tx.Hash().Hex())
+}
+```
+
+### 查询智能合约
+
+在部署过程中设置的`Store.sol`合约中有一个名为`version`的全局变量。 因为它是公开的，这意味着它们将成为我们自动创建的`getter`函数。 常量和`view`函数也接受`bind.CallOpts`作为第一个参数：
+
+```go
+client, err := client.Dial("http://localhost:8545", 1)
+if err != nil {
+    log.Fatal(err)
+}
+
+// load the contract
+address := common.HexToAddress("contract addree in hex") // 0x147B8eb97fD247D06C4006D269c90C1908Fb5D54
+instance, err := store.NewStore(address, client)
+if err != nil {
+    log.Fatal(err)
+}
+
+opts := &bind.CallOpts{From: common.HexToAddress("account address")} //0xdcf15c4239b6a29ee6b27cb848e0f6936d6ccfb4
+version, err := instance.Version(opts)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Println("version :", version) // "Store deployment 1.0"
+```
+
+### 写入智能合约
+
+写入智能合约需要我们用私钥来对交易事务进行签名：
+
+```go
+client, err := client.Dial("http://localhost:8545", 1)
+if err != nil {
+    log.Fatal(err)
+}
+
+// load the contract
+address := common.HexToAddress("contract addree in hex") // 0x147B8eb97fD247D06C4006D269c90C1908Fb5D54
+instance, err := store.NewStore(address, client)
+if err != nil {
+    log.Fatal(err)
+}
+
+key := [32]byte{}
+value := [32]byte{}
+copy(key[:], []byte("foo"))
+copy(value[:], []byte("bar"))
+
+privateKey, err := crypto.HexToECDSA("input your privateKey in hex")
+if err != nil {
+	log.Fatal(err)
+}
+
+auth := bind.NewKeyedTransactor(privateKey)
+tx, err := instance.SetItem(auth, key, value)
+if err != nil {
+	log.Fatal(err)
+}
+
+fmt.Printf("tx sent: %s", tx.Hash().Hex()) // 0x8d490e535678e9a24360e955d75b27ad307bdfb97a1dca51d0f3035dcee3e870
+opts := &bind.CallOpts{From: common.HexToAddress("account address")}
+result, err := instance.Items(opts, key)
+if err != nil {
+	log.Fatal(err)
+}
+
+fmt.Println(string(result[:])) // "bar"
+```
+
+## 样例代码
+
+// TODO

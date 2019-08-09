@@ -87,6 +87,7 @@ package {{.Package}}
 import (
 	"math/big"
 	"strings"
+	
 	"github.com/KasperLiu/gobcos/accounts/abi"
 	"github.com/KasperLiu/gobcos/accounts/abi/bind"
 	"github.com/KasperLiu/gobcos/core/types"
