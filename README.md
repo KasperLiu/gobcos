@@ -29,12 +29,12 @@ git clone https://github.com/KasperLiu/gobcos.git
 进行代码测试前，请先按照实际部署节点的RPC URL更改`client/goclient_test.go`中的默认的FISCO BCOS RPC连接以及群组ID：
 ```go
 func GetClient(t *testing.T) (*Client) {
-	// RPC API
-	c, err := Dial("http://localhost:8545", 1) // change it to your RPC IP & port, groupID that you want to connect
-	if err != nil {
-		t.Fatalf("can not dial to the RPC API: %v", err)
-	}
-	return c
+    // RPC API
+    c, err := Dial("http://localhost:8545", 1) // change it to your RPC IP & port, groupID that you want to connect
+    if err != nil {
+        t.Fatalf("can not dial to the RPC API: %v", err)
+    }
+    return c
 }
 ```
 测试代码默认开启的测试函数为`GetClientVersion, GetBlockNumber, GetPBFTView`，其余函数需去除注释并更改为实际存在的数据后才能执行。如：
@@ -42,15 +42,15 @@ func GetClient(t *testing.T) (*Client) {
 ```go
 // GetBlockHashByNumber returns the block hash by its block number
 func TestBlockHshByNumber(t *testing.T) {
-	c := GetClient(t)
-	// provide a specific blocknumber
-	bnum := "0x1"
-	raw, err := c.GetBlockHashByNumber(context.Background(), bnum)
-	if err != nil {
-		t.Fatalf("block hash not found: %v", err)
-	}
+    c := GetClient(t)
+    // provide a specific blocknumber
+    bnum := "0x1"
+    raw, err := c.GetBlockHashByNumber(context.Background(), bnum)
+    if err != nil {
+        t.Fatalf("block hash not found: %v", err)
+    }
 
-	t.Logf("block hash by number:\n%s", raw)
+    t.Logf("block hash by number:\n%s", raw)
 }
 ```
 
@@ -79,9 +79,9 @@ import (
 
 func main() {
     client, err := client.Dial("http://localhost:8545", groupID) # change to your RPC URL and GroupID
-	if err != nil {
+    if err != nil {
     	// handle err
-	}
+    }
 }
 ```
 
@@ -244,29 +244,29 @@ fmt.Println(address) // 0x96216849c49358B10257cb55b28eA603c874b05E
 
 ```go
 import (
-	"crypto/ecdsa"
+    "crypto/ecdsa"
     "fmt"
     "log"
-	"github.com/KasperLiu/gobcos/crypto"
-	"github.com/KasperLiu/gobcos/common/hexutil"
+    "github.com/KasperLiu/gobcos/crypto"
+    "github.com/KasperLiu/gobcos/common/hexutil"
 )
 
 func main() {
-	privateKey, err := crypto.GenerateKey()
-	if err != nil {
-  		log.Fatal(err)
-	}
-	privateKeyBytes := crypto.FromECDSA(privateKey)
-	fmt.Println(hexutil.Encode(privateKeyBytes)[2:]) // privateKey in hex
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-  		log.Fatal("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-	}
+    privateKey, err := crypto.GenerateKey()
+    if err != nil {
+        log.Fatal(err)
+    }
+    privateKeyBytes := crypto.FromECDSA(privateKey)
+    fmt.Println(hexutil.Encode(privateKeyBytes)[2:]) // privateKey in hex
+    publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+    if !ok {
+        log.Fatal("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+    }
 
-	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
-	fmt.Println(hexutil.Encode(publicKeyBytes)[4:])  // publicKey in hex without "0x"
+    publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
+    fmt.Println(hexutil.Encode(publicKeyBytes)[4:])  // publicKey in hex without "0x"
     address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
-	fmt.Println(address)  // account address
+    fmt.Println(address)  // account address
 }
 ```
 
@@ -288,16 +288,16 @@ package main
 
 import (
     "fmt"
-	"github.com/KasperLiu/gobcos/client"
-	"github.com/KasperLiu/gobcos/accounts/abi/bin"
+    "github.com/KasperLiu/gobcos/client"
+    "github.com/KasperLiu/gobcos/accounts/abi/bin"
     store "contranct/testfile" // import Store.go
 )
 
 func main(){
     client, err := client.Dial("http://localhost:8545", 1)
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
     privateKey, err := crypto.HexToECDSA("input your privateKey in hex without \"0x\"")
     if err != nil {
         log.Fatal(err)
@@ -363,20 +363,20 @@ copy(value[:], []byte("bar"))
 
 privateKey, err := crypto.HexToECDSA("input your privateKey in hex")
 if err != nil {
-	log.Fatal(err)
+    log.Fatal(err)
 }
 
 auth := bind.NewKeyedTransactor(privateKey)
 tx, err := instance.SetItem(auth, key, value)
 if err != nil {
-	log.Fatal(err)
+    log.Fatal(err)
 }
 
 fmt.Printf("tx sent: %s", tx.Hash().Hex()) // 0x8d490e535678e9a24360e955d75b27ad307bdfb97a1dca51d0f3035dcee3e870
 opts := &bind.CallOpts{From: common.HexToAddress("account address")}
 result, err := instance.Items(opts, key)
 if err != nil {
-	log.Fatal(err)
+    log.Fatal(err)
 }
 
 fmt.Println(string(result[:])) // "bar"
