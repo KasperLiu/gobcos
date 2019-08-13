@@ -7,7 +7,8 @@ import (
 
 func GetClient(t *testing.T) (*Client) {
 	// RPC API
-	c, err := Dial("http://localhost:8545", 1)  // change to your RPC and groupID
+	groupID := uint(1)
+	c, err := Dial("http://localhost:8545", groupID)  // change to your RPC and groupID
 	if err != nil {
 		t.Fatalf("can not dial to the RPC API: %v", err)
 	}

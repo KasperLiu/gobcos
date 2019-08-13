@@ -30,7 +30,8 @@ git clone https://github.com/KasperLiu/gobcos.git
 ```go
 func GetClient(t *testing.T) (*Client) {
     // RPC API
-    c, err := Dial("http://localhost:8545", 1) // change it to your RPC IP & port, groupID that you want to connect
+    groupID := uint(1)
+    c, err := Dial("http://localhost:8545", groupID) // change it to your RPC IP & port, groupID that you want to connect
     if err != nil {
         t.Fatalf("can not dial to the RPC API: %v", err)
     }
@@ -78,6 +79,7 @@ import (
 )
 
 func main() {
+    groupID := uint(1)
     client, err := client.Dial("http://localhost:8545", groupID) # change to your RPC URL and GroupID
     if err != nil {
     	// handle err
@@ -85,7 +87,7 @@ func main() {
 }
 ```
 
-然后可按照FISCO BCOS的[RPC API文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/api.html#)进行区块信息查询，需要注意的是，客服端的方法调用需要更改为大写字母`Get`：
+然后可按照FISCO BCOS的[RPC API文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/api.html#)进行区块链信息查询，需要注意的是，gobcos客服端的RPC方法调用需要将API文档里的方法首字母更改为大写字母`Get`：
 
 ```go
 blockHash := "0xc0b21d064b97bafda716e07785fe8bb20cc23506bb980f12c7f7a4f4ef50ce30" # fake hash
@@ -243,10 +245,13 @@ fmt.Println(address) // 0x96216849c49358B10257cb55b28eA603c874b05E
 整体的代码示例为：
 
 ```go
+package main
+
 import (
     "crypto/ecdsa"
     "fmt"
     "log"
+    "os"
     "github.com/KasperLiu/gobcos/crypto"
     "github.com/KasperLiu/gobcos/common/hexutil"
 )
@@ -256,144 +261,189 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
+
     privateKeyBytes := crypto.FromECDSA(privateKey)
-    fmt.Println(hexutil.Encode(privateKeyBytes)[2:]) // privateKey in hex
+    fmt.Println("private key: ", hexutil.Encode(privateKeyBytes)[2:]) // privateKey in hex without "0x"
+
+    publicKey := privateKey.Public()
     publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
     if !ok {
         log.Fatal("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
     }
 
     publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
-    fmt.Println(hexutil.Encode(publicKeyBytes)[4:])  // publicKey in hex without "0x"
+    fmt.Println("publick key: ", hexutil.Encode(publicKeyBytes)[4:])  // publicKey in hex without "0x"
+
     address := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
-    fmt.Println(address)  // account address
+    fmt.Println("address: ", address)  // account address
 }
 ```
 
 ### 部署智能合约
 
-首先在利用`abigen`生成的`Store.go`文件下，创建一个新的`contract_load.go`文件用来调用`Store.go`文件，并创建一个新的文件夹来放置`Store.go`以方便调用，同时利用`go mod`进行包管理，初始化为一个`contract`包：
+首先在利用`abigen`生成的`Store.go`文件下，创建一个新的`contract_run.go`文件用来调用`Store.go`文件，并创建一个新的文件夹来放置`Store.go`以方便调用，同时利用`go mod`进行包管理，初始化为一个`contract`包：
 
 ```bash
-mdkir testfile
+mkdir testfile
 mv ./Store.go testfile
-touch contract.go
+touch contract_run.go
 go mod init contract
 ```
 
-此时目录下会生成`go.mod`包管理文件。而在`contract.go`部署合约之前，需要先从`gobcos`中导入`accounts/abi/bind`包，然后调用传入私钥的`NewKeyedTransactor`：
+此时目录下会生成`go.mod`包管理文件。而在`contract_deploy.go`部署合约之前，需要先从`gobcos`中导入`accounts/abi/bind`包，然后调用传入私钥的`NewKeyedTransactor`：
 
 ```go 
 package main
 
 import (
     "fmt"
+    "log"
     "github.com/KasperLiu/gobcos/client"
-    "github.com/KasperLiu/gobcos/accounts/abi/bin"
-    store "contranct/testfile" // import Store.go
+    "github.com/KasperLiu/gobcos/accounts/abi/bind"
+    "github.com/KasperLiu/gobcos/crypto"
+    store "contract/testfile" // import Store.go
 )
 
 func main(){
-    client, err := client.Dial("http://localhost:8545", 1)
+    groupID := uint(1)
+    client, err := client.Dial("http://localhost:8545", groupID)
     if err != nil {
         log.Fatal(err)
     }
-    privateKey, err := crypto.HexToECDSA("input your privateKey in hex without \"0x\"")
+    privateKey, err := crypto.HexToECDSA("input your privateKey in hex without \"0x\"") // 145e247e170ba3afd6ae97e88f00dbc976c2345d511b0f6713355d19d8b80b58
     if err != nil {
         log.Fatal(err)
     }
     auth := bind.NewKeyedTransactor(privateKey) // input your privateKey
     input := "Store deployment 1.0"
-    address, tx, instance, err := store.DeployHelloworldfi(auth, client, input)
+    address, tx, instance, err := store.DeployStore(auth, client, input)
     if err != nil {
         log.Fatal(err)
     }
     fmt.Println("contract address: ", address.Hex())  // the address should be saved
     fmt.Println("transaction hash: ", tx.Hash().Hex())
+    _ = instance
 }
 ```
 
 ### 加载智能合约
-在部署完智能合约后，获取到合约的地址，在进行合约查询以及写入时，需要先加载智能合约：
+在部署完智能合约后，可以获取到合约的地址，但在进行合约查询以及写入时，需要先加载智能合约，此时需要导入`common`包以获取正确的合约地址，新建`contract_load.go`以加载智能合约：
 
 ```go
-address := common.HexToAddress("contract addree in hex") // 0x147B8eb97fD247D06C4006D269c90C1908Fb5D54
-instance, err := store.NewStore(address, client)
-if err != nil {
-    log.Fatal(err)
+package main 
+
+import (
+    "fmt"
+    "log"
+    "github.com/KasperLiu/gobcos/common"
+    "github.com/KasperLiu/gobcos/client"
+    store "contract/testfile" // for demo
+)
+
+func main() {
+    groupID := uint(1)
+    client, err := client.Dial("http://localhost:8545", groupID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    address := common.HexToAddress("contract addree in hex") // 0x0626918C51A1F36c7ad4354BB1197460A533a2B9
+    instance, err := store.NewStore(address, client)
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Println("contract is loaded")
+    _ = instance
 }
-_ = instance
 ```
 
 ### 查询智能合约
 
-在部署过程中设置的`Store.sol`合约中有一个名为`version`的全局变量。 因为它是公开的，这意味着它们将成为我们自动创建的`getter`函数。 常量和`view`函数也接受`bind.CallOpts`作为第一个参数：
+在部署过程中设置的`Store.sol`合约中有一个名为`version`的全局变量。 因为它是公开的，这意味着它们将成为我们自动创建的`getter`函数。 常量和`view`函数也接受`bind.CallOpts`作为第一个参数，新建`contract_read.go`文件以查询合约：
 
 ```go
-client, err := client.Dial("http://localhost:8545", 1)
-if err != nil {
-    log.Fatal(err)
-}
+package main
 
-// load the contract
-address := common.HexToAddress("contract addree in hex") // 0x147B8eb97fD247D06C4006D269c90C1908Fb5D54
-instance, err := store.NewStore(address, client)
-if err != nil {
-    log.Fatal(err)
-}
+import (
+    "fmt"
+    "log"
+    "github.com/KasperLiu/gobcos/common"
+    "github.com/KasperLiu/gobcos/client"
+    "github.com/KasperLiu/gobcos/accounts/abi/bind"
+    store "contract/testfile" // for demo
+)
 
-opts := &bind.CallOpts{From: common.HexToAddress("account address")} //0xdcf15c4239b6a29ee6b27cb848e0f6936d6ccfb4
-version, err := instance.Version(opts)
-if err != nil {
-    log.Fatal(err)
-}
+func main() {
+    groupID := uint(1)
+    client, err := client.Dial("http://localhost:8545", groupID)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-fmt.Println("version :", version) // "Store deployment 1.0"
+    // load the contract
+    address := common.HexToAddress("contract addree in hex") // 0x0626918C51A1F36c7ad4354BB1197460A533a2B9
+    instance, err := store.NewStore(address, client)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    opts := &bind.CallOpts{From: common.HexToAddress("account address")} //0xFbb18d54e9Ee57529cda8c7c52242EFE879f064F
+    version, err := instance.Version(opts)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println("version :", version) // "Store deployment 1.0"
+}
 ```
 
 ### 写入智能合约
 
-写入智能合约需要我们用私钥来对交易事务进行签名：
+写入智能合约需要我们用私钥来对交易事务进行签名，我们创建的智能合约有一个名为`SetItem`的外部方法，它接受solidity`bytes32`类型的两个参数（key，value）。 这意味着在Go文件中需要传递一个长度为32个字节的字节数组。 调用`SetItem`方法需要我们传递我们之前创建的`auth`对象（keyed transactor）。 在幕后，此方法将使用它的参数对此函数调用进行编码，将其设置为事务的data属性，并使用私钥对其进行签名。 结果将是一个已签名的事务对象。新建`contract_write.go`来测试写入智能合约：
 
 ```go
-client, err := client.Dial("http://localhost:8545", 1)
-if err != nil {
-    log.Fatal(err)
+package main
+
+import (
+    "fmt"
+    "log"
+    "github.com/KasperLiu/gobcos/common"
+    "github.com/KasperLiu/gobcos/client"
+    "github.com/KasperLiu/gobcos/accounts/abi/bind"
+    "github.com/KasperLiu/gobcos/crypto"
+    store "contract/testfile" // for demo
+)
+
+func main() {
+    groupID := uint(8)
+    client, err := client.Dial("http://localhost:8545", groupID)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // load the contract
+    address := common.HexToAddress("contract addree in hex") // 0x0626918C51A1F36c7ad4354BB1197460A533a2B9
+    instance, err := store.NewStore(address, client)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    key := [32]byte{}
+    value := [32]byte{}
+    copy(key[:], []byte("foo"))
+    copy(value[:], []byte("bar"))
+
+    privateKey, err := crypto.HexToECDSA("input your privateKey in hex") // 145e247e170ba3afd6ae97e88f00dbc976c2345d511b0f6713355d19d8b80b58
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    auth := bind.NewKeyedTransactor(privateKey)
+    tx, err := instance.SetItem(auth, key, value)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("tx sent: %s", tx.Hash().Hex())
 }
-
-// load the contract
-address := common.HexToAddress("contract addree in hex") // 0x147B8eb97fD247D06C4006D269c90C1908Fb5D54
-instance, err := store.NewStore(address, client)
-if err != nil {
-    log.Fatal(err)
-}
-
-key := [32]byte{}
-value := [32]byte{}
-copy(key[:], []byte("foo"))
-copy(value[:], []byte("bar"))
-
-privateKey, err := crypto.HexToECDSA("input your privateKey in hex")
-if err != nil {
-    log.Fatal(err)
-}
-
-auth := bind.NewKeyedTransactor(privateKey)
-tx, err := instance.SetItem(auth, key, value)
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Printf("tx sent: %s", tx.Hash().Hex()) // 0x8d490e535678e9a24360e955d75b27ad307bdfb97a1dca51d0f3035dcee3e870
-opts := &bind.CallOpts{From: common.HexToAddress("account address")}
-result, err := instance.Items(opts, key)
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Println(string(result[:])) // "bar"
 ```
-
-## 样例代码
-
-// TODO
