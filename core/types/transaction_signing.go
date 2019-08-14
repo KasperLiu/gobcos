@@ -138,6 +138,7 @@ func (s EIP155RawSigner) SignatureValues(tx *RawTransaction, sig []byte) (R, S, 
 // Hash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
 func (s EIP155RawSigner) Hash(tx *RawTransaction) common.Hash {
+	// fmt.Printf("EIP155RawSigner.Hash()\n")
 	return rlpHash([]interface{}{
 		tx.data.AccountNonce,
 		tx.data.Price,
@@ -195,6 +196,7 @@ func (fs FrontierRawSigner) SignatureValues(tx *RawTransaction, sig []byte) (r, 
 // Hash returns the hash to be signed by the sender.
 // It does not uniquely identify the transaction.
 func (fs FrontierRawSigner) Hash(tx *RawTransaction) common.Hash {
+	// fmt.Printf("FrontierRawSigner.Hash()\n")
 	return rlpHash([]interface{}{
 		tx.data.AccountNonce,
 		tx.data.Price,
@@ -203,6 +205,9 @@ func (fs FrontierRawSigner) Hash(tx *RawTransaction) common.Hash {
 		tx.data.Recipient,
 		tx.data.Amount,
 		tx.data.Payload,
+		tx.data.ChainId,
+		tx.data.GroupId,
+		tx.data.ExtraData,
 	})
 }
 
