@@ -256,14 +256,16 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 	groupID = c.transactor.GetGroupID()
 	if groupID == nil {
 		return nil, fmt.Errorf("failed to get the group ID")
-    }
+	}
 
 	// Create the transaction, sign it and schedule it for execution
 	var rawTx *types.RawTransaction
+	str := ""
+	extraData := []byte(str)
 	if contract == nil {
-		rawTx = types.NewRawContractCreation(nonce, value, gasLimit, gasPrice, blockLimit, input, chainID, groupID, nil)
+		rawTx = types.NewRawContractCreation(nonce, value, gasLimit, gasPrice, blockLimit, input, chainID, groupID, extraData)
 	} else {
-		rawTx = types.NewRawTransaction(nonce, c.address, value, gasLimit, gasPrice, blockLimit, input, chainID, groupID,nil)
+		rawTx = types.NewRawTransaction(nonce, c.address, value, gasLimit, gasPrice, blockLimit, input, chainID, groupID, extraData)
 	}
 	if opts.Signer == nil {
 		return nil, errors.New("no signer to authorize the transaction with")

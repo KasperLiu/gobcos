@@ -39,7 +39,7 @@ type rawtxdata struct {
 	// for fisco bcos 2.0
 	ChainId       *big.Int        `json:"chainId"    gencodec:"required"`
 	GroupId       *big.Int        `json:"groupId"    gencodec:"required"`
-	ExtraData      []byte         `json:"extraData"    gencodec:"required"`
+	ExtraData      []byte         `json:"extraData"    rlp:"nil"` //gencodec:"required"`
 
 	// Signature values
 	V *big.Int `json:"v" gencodec:"required"`
@@ -91,7 +91,7 @@ func newRawTransaction(nonce *big.Int, to *common.Address, amount *big.Int, gasL
 		Price:        new(big.Int),
 		ChainId:	  new(big.Int),
 		GroupId:	  new(big.Int),
-		ExtraData:	  nil,
+		ExtraData:	  extraData,
 		V:            new(big.Int),
 		R:            new(big.Int),
 		S:            new(big.Int),
