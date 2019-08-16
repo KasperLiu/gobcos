@@ -407,6 +407,7 @@ package main
 import (
     "fmt"
     "log"
+    "context"
     "github.com/KasperLiu/gobcos/common"
     "github.com/KasperLiu/gobcos/client"
     "github.com/KasperLiu/gobcos/accounts/abi/bind"
@@ -444,6 +445,22 @@ func main() {
         log.Fatal(err)
     }
 
-    fmt.Printf("tx sent: %s", tx.Hash().Hex())
+    fmt.Printf("tx sent: %s\n", tx.Hash().Hex())
+
+    // wait for the mining
+    receipt, err := bind.WaitMined(context.Background(), client, tx)
+    if err != nil {
+        log.Fatalf("tx mining error:%v\n", err)
+    }
+    fmt.Printf("transaction hash of receipt: %s\n", receipt.GetTransactionHash())
+    
+    // read the result
+    opts := &bind.CallOpts{From: common.HexToAddress("0xFbb18d54e9Ee57529cda8c7c52242EFE879f064F")} // 0xFbb18d54e9Ee57529cda8c7c52242EFE879f064F
+    result, err := instance.Items(opts, key)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println(string(result[:])) // "bar"
 }
 ```

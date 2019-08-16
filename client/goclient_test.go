@@ -242,12 +242,11 @@ func TestPBFTView(t *testing.T) {
 // func TestTransactionReceipt(t *testing.T) {
 // 	c := GetClient(t)
 	
-// 	txhash := "0xed51827558939e8d103cbf8f6ff37f8a99582f09afa29e5636d0e54a073d0893"
+// 	txhash := "0x6613da911621248ffc2983a4553d44fb299887ae2d803eb81d9890465fbf29e5"
 // 	raw, err := c.GetTransactionReceipt(context.Background(), txhash)
 // 	if err != nil {
 // 		t.Fatalf("transaction receipt not found: %v", err)
 // 	}
-
 // 	t.Logf("transaction receipt by transaction hash:\n%s", raw)
 // }
 

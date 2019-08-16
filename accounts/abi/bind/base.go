@@ -124,7 +124,6 @@ func DeployContract(opts *TransactOpts, abi abi.ABI, bytecode []byte, backend Co
 			break
 		}
 	}
-	
 	c.address = address
 	return c.address, tx, c, nil
 }
