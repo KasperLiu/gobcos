@@ -94,11 +94,11 @@ type ContractFilterer interface {
 	SubscribeFilterLogs(ctx context.Context, query common.FilterQuery, ch chan<- types.Log) (common.Subscription, error)
 }
 
-// DeployBackend wraps the operations needed by WaitMined and WaitDeployed.
-// type DeployBackend interface {
-// 	TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error)
-// 	CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error)
-// }
+//DeployBackend wraps the operations needed by WaitMined and WaitDeployed.
+type DeployBackend interface {
+	TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.RawReceipt, error)
+	CodeAt(ctx context.Context, account common.Address, blockNumber *big.Int) ([]byte, error)
+}
 
 // ContractBackend defines the methods needed to work with contracts on a read-write basis.
 type ContractBackend interface {

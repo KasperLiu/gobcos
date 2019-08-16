@@ -453,6 +453,16 @@ func (gc *Client) GetTransactionReceipt(ctx context.Context, txhash string) ([]b
 	return js, err
 }
 
+func (gc *Client) TransactionReceipt(ctx context.Context, txhash common.Hash) (*types.RawReceipt, error) {
+	var raw *types.RawReceipt
+	err := gc.c.CallContext(ctx, &raw, "getTransactionReceipt", gc.groupID, txhash.Hex())
+	if err != nil {
+		return nil, err
+	}
+	//js, err := json.MarshalIndent(raw, "", "\t")
+	return raw, err
+}
+
 // GetContractAddress returns a contract address according to the transaction hash 
 func (gc *Client) GetContractAddress(ctx context.Context, txhash string) (common.Address, error) {
 	var raw interface{}
