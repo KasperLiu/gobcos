@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"math/big"
 	"errors"
+
 	"github.com/KasperLiu/gobcos/common"
 	"github.com/KasperLiu/gobcos/common/hexutil"
 	"github.com/KasperLiu/gobcos/rpc"
@@ -174,6 +175,20 @@ func (gc *Client) SendTransaction(ctx context.Context, tx *types.RawTransaction)
 	}
 	return gc.c.CallContext(ctx, nil, "sendRawTransaction", gc.groupID, common.ToHex(data))
 }
+
+// TransactionReceipt returns the receipt of a transaction by transaction hash.
+// Note that the receipt is not available for pending transactions.
+func (gc *Client) TransactionReceipt(ctx context.Context, txHash common.Hash) (*types.Receipt, error) {
+	var r *types.Receipt
+	err := gc.c.CallContext(ctx, &r, "getTransactionReceipt", gc.groupID, txHash.Hex())
+	if err == nil {
+		if r == nil {
+			return nil, errors.New("Transaction not found")
+		}
+	}
+	return r, err
+}
+
 
 func toCallArg(msg common.CallMsg) interface{} {
 	arg := map[string]interface{}{
@@ -443,14 +458,14 @@ func (gc *Client) GetTransactionByBlockNumberAndIndex(ctx context.Context, bnum 
 }
 
 // GetTransactionReceipt returns the transaction receipt according to the given transaction hash
-func (gc *Client) GetTransactionReceipt(ctx context.Context, txhash string) ([]byte, error) {
-	var raw interface{}
+func (gc *Client) GetTransactionReceipt(ctx context.Context, txhash string) (*types.Receipt, error) {
+	var raw *types.Receipt
 	err := gc.c.CallContext(ctx, &raw, "getTransactionReceipt", gc.groupID, txhash)
 	if err != nil {
 		return nil, err
 	}
-	js, err := json.MarshalIndent(raw, "", "\t")
-	return js, err
+	// js, err := json.MarshalIndent(raw, "", "\t")
+	return raw, err
 }
 
 // GetContractAddress returns a contract address according to the transaction hash 
