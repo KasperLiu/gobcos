@@ -140,7 +140,6 @@ func forEachUnpack(t Type, output []byte, start, size int) (interface{}, error) 
 	// Arrays have packed elements, resulting in longer unpack steps.
 	// Slices have just 32 bytes per element (pointing to the contents).
 	elemSize := getTypeSize(*t.Elem)
-
 	for i, j := start, 0; j < size; i, j = i+elemSize, j+1 {
 		inter, err := toGoType(i, *t.Elem, output)
 		if err != nil {
@@ -253,7 +252,6 @@ func lengthPrefixPointsTo(index int, output []byte) (start int, length int, err 
 	bigOffsetEnd := big.NewInt(0).SetBytes(output[index : index+32])
 	bigOffsetEnd.Add(bigOffsetEnd, common.Big32)
 	outputLength := big.NewInt(int64(len(output)))
-
 	if bigOffsetEnd.Cmp(outputLength) > 0 {
 		return 0, 0, fmt.Errorf("abi: cannot marshal in to go slice: offset %v would go over slice boundary (len=%v)", bigOffsetEnd, outputLength)
 	}
@@ -284,7 +282,6 @@ func lengthPrefixPointsTo(index int, output []byte) (start int, length int, err 
 func tuplePointsTo(index int, output []byte) (start int, err error) {
 	offset := big.NewInt(0).SetBytes(output[index : index+32])
 	outputLen := big.NewInt(int64(len(output)))
-
 	if offset.Cmp(big.NewInt(int64(len(output)))) > 0 {
 		return 0, fmt.Errorf("abi: cannot marshal in to go slice: offset %v would go over slice boundary (len=%v)", offset, outputLen)
 	}

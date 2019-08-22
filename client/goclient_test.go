@@ -149,7 +149,7 @@ func TestPBFTView(t *testing.T) {
 // 	if err != nil {
 // 		t.Fatalf("nodeID list not found: %v", err)
 // 	}
-
+    
 // 	t.Logf("nodeID list:\n %s", raw)
 // }
 
