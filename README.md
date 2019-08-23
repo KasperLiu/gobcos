@@ -1,11 +1,15 @@
 # gobcos
 Golang Client For FISCO BCOS 2.0.0
 
-FISCO BCOS Go语言版本的SDK，基于以太坊进行改进，主要的功能有：
+FISCO BCOS Go语言版本的SDK，借助以太坊代码进行改进，主要实现的功能有：
 
 - FISCO BCOS 2.0.0 JSON-RPC的Golang API 服务
 - `Solidity`合约编译为Go文件
 - 部署、查询、写入智能合约
+- 控制台程序
+
+`gobcos`的使用可以当做是一个`package`进行使用，亦可对项目代码进行编译，直接使用**控制台**通过配置文件来进行访问FISCO BCOS。
+导入
 
 # 环境准备
 
@@ -14,7 +18,13 @@ FISCO BCOS Go语言版本的SDK，基于以太坊进行改进，主要的功能�
 - Solidity编译器，默认[0.4.25版本](https://github.com/ethereum/solidity/releases/tag/v0.4.25)
 
 
-# 功能使用
+# Package功能使用
+
+以下的示例是通过`import`的方式来使用`gobcos`，如引入RPC控制台库:
+
+```go
+import "github.com/KasperLiu/gobcos/client"
+```
 
 ## RPC API 测试
 
@@ -464,3 +474,23 @@ func main() {
     fmt.Println(string(result[:])) // "bar"
 }
 ```
+
+# 控制台使用
+使用控制台需要先拉取代码或下载代码，并对代码进行编译:
+
+```bash
+git clone https://github.com/KasperLiu/gobcos.git
+cd gobcos
+```
+
+编译代码后会在`$GOBIN`下生成控制台程序，请确保添加`$GOBIN`到系统路径`$PATH`中，以便能正常执行`go`生成的执行程序:
+
+```go
+go install gobcos.go
+```
+运行控制台查看可用指令:
+
+```bash
+gobcos help
+```
+

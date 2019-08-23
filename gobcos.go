@@ -15,8 +15,8 @@ limitations under the License.
 */
 package main
 
-import "github.com/KasperLiu/gobcos/cmd"
+import "github.com/KasperLiu/gobcos/cmd/console"
 
 func main() {
-  cmd.Execute()
+  console.Execute()
 }
