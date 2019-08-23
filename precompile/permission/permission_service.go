@@ -188,13 +188,8 @@ func handleReceipt(receipt *types.Receipt) (string, error) {
 		return "", fmt.Errorf(common.GetStatusMessage(status))
 	} 
 	output := receipt.GetOutput()
-	// fmt.Printf("handleReceipt : %+v\n", receipt)
 	if output != "" {
-		outputJSON, err := json.MarshalIndent(output, "", "\t")
-		if err != nil {
-			return "", fmt.Errorf("handleReceipt: change output to json struct failed: %v", err)
-		}
-		return string(outputJSON[:]), nil
+		return common.GetJsonStr(output)
 	}
 	return "", fmt.Errorf("Transaction is handled failure")
 }

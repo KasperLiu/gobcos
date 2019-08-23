@@ -21,7 +21,7 @@ func GetClient(t *testing.T) *client.Client {
 }
 
 func GenerateKey(t *testing.T) *ecdsa.PrivateKey {
-	privateKey, err := crypto.HexToECDSA("608fe45cc95cce1b5b048ea588cfab5936fd5ed7cdb19dfe68404d1a462ef5ab")
+	privateKey, err := crypto.HexToECDSA("145e247e170ba3afd6ae97e88f00dbc976c2345d511b0f6713355d19d8b80b58")
     if err != nil {
         t.Fatalf("init privateKey failed: %+v", err)
 	}
