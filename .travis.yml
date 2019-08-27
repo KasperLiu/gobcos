@@ -6,3 +6,6 @@ go:
 install: true
 
 script: bash -x ci_check.sh
+
+notifications:
+  email: false
