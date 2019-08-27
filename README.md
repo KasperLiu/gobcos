@@ -1,7 +1,7 @@
 # gobcos
 
 
-[![Build Status](https://travis-ci.com/KasperLiu/gobcos.svg?branch=console-feature)](https://travis-ci.com/KasperLiu/gobcos)
+[![Build Status](https://travis-ci.com/KasperLiu/gobcos.svg?branch=master)](https://travis-ci.com/KasperLiu/gobcos)
 
 Golang Client For FISCO BCOS 2.0.0
 
