@@ -1,4 +1,8 @@
 language: go
 
 go:
-- 1.12
+- 1.12.x
+
+install: true
+
+script: bash -x ci_check.sh
