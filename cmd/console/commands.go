@@ -27,12 +27,11 @@ import (
 var rpc *client.Client
 
 // GetClient is used for test, it will be init by a config file later.
-func getClient() (*client.Client) {
+func getClient(url string, groupID uint) (*client.Client) {
 	// RPC API
-	groupID := uint(1)
-	c, err := client.Dial("http://localhost:8545", groupID)  // change to your RPC and groupID
+	c, err := client.Dial(url, groupID)  // change to your RPC and groupID
 	if err != nil {
-		fmt.Printf("can not dial to the RPC API: %v", err)
+		fmt.Printf("can not dial to the RPC API: %v\n", err)
 	}
 	return c
 }
@@ -87,10 +86,10 @@ var getClientVersionCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		clientVer, err := rpc.GetClientVersion(context.Background())
 		if err != nil {
-			fmt.Printf("client version not found: %v", err)
+			fmt.Printf("client version not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Client Version: \n%s " , clientVer)
+		fmt.Printf("Client Version: \n%s\n" , clientVer)
 	},
 }
 
@@ -101,7 +100,7 @@ var getGroupIDCmd = &cobra.Command{
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		groupID := rpc.GetGroupID()
-		fmt.Printf("Group ID: \n%s " , groupID)
+		fmt.Printf("Group ID: \n%s\n" , groupID)
 	},
 }
 
@@ -114,10 +113,10 @@ The block height is encoded in hex`,
 	Run: func(cmd *cobra.Command, args []string) {
 		blockNumber,err := rpc.GetBlockNumber(context.Background())
 		if err != nil {
-			fmt.Printf("block number not found: %v", err)
+			fmt.Printf("block number not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Block Number: \n%s " , blockNumber)
+		fmt.Printf("blocknumber: \n%s\n", blockNumber)
 	},
 }
 
@@ -130,10 +129,10 @@ The PBFT view is encoded in hex`,
 	Run: func(cmd *cobra.Command, args []string) {
 		pbft,err := rpc.GetPBFTView(context.Background())
 		if err != nil {
-			fmt.Printf("PBFT view not found: %v", err)
+			fmt.Printf("PBFT view not found: %v\n", err)
 			return
 		}
-		fmt.Printf("PBFT view: \n%s " , pbft)
+		fmt.Printf("PBFT view: \n%s\n" , pbft)
 	},
 }
 
@@ -145,10 +144,10 @@ var getSealerListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		sealerList,err := rpc.GetSealerList(context.Background())
 		if err != nil {
-			fmt.Printf("sealer list not found: %v", err)
+			fmt.Printf("sealer list not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Sealer List: \n%s " , sealerList)
+		fmt.Printf("Sealer List: \n%s\n" , sealerList)
 	},
 }
 
@@ -160,10 +159,10 @@ var getObserverListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		observerList,err := rpc.GetObserverList(context.Background())
 		if err != nil {
-			fmt.Printf("observer list not found: %v", err)
+			fmt.Printf("observer list not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Observer List: \n%s " , observerList)
+		fmt.Printf("Observer List: \n%s\n" , observerList)
 	},
 }
 
@@ -175,10 +174,10 @@ var getConsensusStatusCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		consensusStatus,err := rpc.GetConsensusStatus(context.Background())
 		if err != nil {
-			fmt.Printf("consensus status not found: %v", err)
+			fmt.Printf("consensus status not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Consensus Status: \n%s " , consensusStatus)
+		fmt.Printf("Consensus Status: \n%s\n" , consensusStatus)
 	},
 }
 
@@ -190,10 +189,10 @@ var getSyncStatusCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		syncStatus,err := rpc.GetSyncStatus(context.Background())
 		if err != nil {
-			fmt.Printf("synchronization status not found: %v", err)
+			fmt.Printf("synchronization status not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Synchronization Status: \n%s " , syncStatus)
+		fmt.Printf("Synchronization Status: \n%s\n" , syncStatus)
 	},
 }
 
@@ -205,10 +204,10 @@ var getPeersCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		peers,err := rpc.GetPeers(context.Background())
 		if err != nil {
-			fmt.Printf("peers not found: %v", err)
+			fmt.Printf("peers not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Peers: \n%s " , peers)
+		fmt.Printf("Peers: \n%s\n" , peers)
 	},
 }
 
@@ -220,10 +219,10 @@ var getGroupPeersCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		peers,err := rpc.GetGroupPeers(context.Background())
 		if err != nil {
-			fmt.Printf("peers not found: %v", err)
+			fmt.Printf("peers not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Peers: \n%s " , peers)
+		fmt.Printf("Peers: \n%s\n" , peers)
 	},
 }
 
@@ -235,10 +234,10 @@ var getNodeIDListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		peers,err := rpc.GetNodeIDList(context.Background())
 		if err != nil {
-			fmt.Printf("node ID list not found: %v", err)
+			fmt.Printf("node ID list not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Node ID list: \n%s " , peers)
+		fmt.Printf("Node ID list: \n%s\n" , peers)
 	},
 }
 
@@ -250,10 +249,10 @@ var getGroupListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		peers,err := rpc.GetGroupList(context.Background())
 		if err != nil {
-			fmt.Printf("group IDs list not found: %v", err)
+			fmt.Printf("group IDs list not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Group ID List: \n%s " , peers)
+		fmt.Printf("Group ID List: \n%s\n" , peers)
 	},
 }
 
@@ -285,17 +284,17 @@ For more information please refer:
 			bhash = args[0]
 			_includeTx, err := strconv.ParseBool(args[1])
 			if err != nil {
-				fmt.Printf("arguments error: %v\n", err)
+				fmt.Printf("arguments error: %v\n\n", err)
 				return
 			}
 			includeTx = _includeTx
 		}
 		peers,err := rpc.GetBlockByHash(context.Background(), bhash, includeTx)
 		if err != nil {
-			fmt.Printf("block not found: %v", err)
+			fmt.Printf("block not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Block: \n%s " , peers)
+		fmt.Printf("Block: \n%s\n" , peers)
 	},
 }
 
@@ -325,17 +324,17 @@ For more information please refer:
 			bnumber = args[0]
 			_includeTx, err := strconv.ParseBool(args[1])
 			if err != nil {
-				fmt.Printf("error: %v\n", err)
+				fmt.Printf("error: %v\n\n", err)
 				return
 			}
 			includeTx = _includeTx
 		}
 		block,err := rpc.GetBlockByNumber(context.Background(), bnumber, includeTx)
 		if err != nil {
-			fmt.Printf("block not found: %v", err)
+			fmt.Printf("block not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Block: \n%s " , block)
+		fmt.Printf("Block: \n%s\n" , block)
 	},
 }
 
@@ -358,10 +357,10 @@ For more information please refer:
 		bnumber := args[0]
 		bhash,err := rpc.GetBlockHashByNumber(context.Background(), bnumber)
 		if err != nil {
-			fmt.Printf("block not found: %v", err)
+			fmt.Printf("block not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Block Hash: \n%s " , bhash)
+		fmt.Printf("Block Hash: \n%s\n" , bhash)
 	},
 }
 
@@ -386,10 +385,10 @@ For more information please refer:
 		txHash := args[0]
 		tx,err := rpc.GetTransactionByHash(context.Background(), txHash)
 		if err != nil {
-			fmt.Printf("transaction not found: %v", err)
+			fmt.Printf("transaction not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Transaction: \n%s " , tx)
+		fmt.Printf("Transaction: \n%s\n" , tx)
 	},
 }
 
@@ -414,10 +413,10 @@ For more information please refer:
 		txIndex := args[1]
 		tx,err := rpc.GetTransactionByBlockHashAndIndex(context.Background(), bhash, txIndex)
 		if err != nil {
-			fmt.Printf("transaction not found: %v", err)
+			fmt.Printf("transaction not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Transaction: \n%s " , tx)
+		fmt.Printf("Transaction: \n%s\n" , tx)
 	},
 }
 
@@ -442,10 +441,10 @@ For more information please refer:
 		txIndex := args[1]
 		tx,err := rpc.GetTransactionByBlockNumberAndIndex(context.Background(), bnumber, txIndex)
 		if err != nil {
-			fmt.Printf("transaction not found: %v", err)
+			fmt.Printf("transaction not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Transaction: \n%s " , tx)
+		fmt.Printf("Transaction: \n%s\n" , tx)
 	},
 }
 
@@ -468,10 +467,10 @@ For more information please refer:
 		txHash := args[0]
 		tx,err := rpc.GetTransactionReceipt(context.Background(), txHash)
 		if err != nil {
-			fmt.Printf("transaction receipt not found: %v", err)
+			fmt.Printf("transaction receipt not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Transaction Receipt: \n%s " , tx)
+		fmt.Printf("Transaction Receipt: \n%s\n" , tx)
 	},
 }
 
@@ -483,10 +482,10 @@ var getPendingTransactionsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		tx, err := rpc.GetPendingTransactions(context.Background())
 		if err != nil {
-			fmt.Printf("transaction not found: %v", err)
+			fmt.Printf("transaction not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Pending Transactions: \n%s " , tx)
+		fmt.Printf("Pending Transactions: \n%s\n" , tx)
 	},
 }
 
@@ -498,10 +497,10 @@ var getPendingTxSizeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		tx, err := rpc.GetPendingTxSize(context.Background())
 		if err != nil {
-			fmt.Printf("transactions not found: %v", err)
+			fmt.Printf("transactions not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Peding Transactions Count: \n%s " , tx)
+		fmt.Printf("Peding Transactions Count: \n%s\n" , tx)
 	},
 }
 
@@ -526,10 +525,10 @@ For more information please refer:
         contractAdd := args[0]
 		code, err := rpc.GetCode(context.Background(), contractAdd)
 		if err != nil {
-			fmt.Printf("contract code not found: %v", err)
+			fmt.Printf("contract code not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Contract Code: \n%s " , code)
+		fmt.Printf("Contract Code: \n%s\n" , code)
 	},
 }
 
@@ -541,10 +540,10 @@ var getTotalTransactionCountCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		counts, err := rpc.GetTotalTransactionCount(context.Background())
 		if err != nil {
-			fmt.Printf("information not found: %v", err)
+			fmt.Printf("information not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Latest Statistics on Transaction and Block Height: \n%s " , counts)
+		fmt.Printf("Latest Statistics on Transaction and Block Height: \n%s\n" , counts)
 	},
 }
 
@@ -567,10 +566,10 @@ For more information please refer:
 		key := args[0]
 		value, err := rpc.GetSystemConfigByKey(context.Background(), key)
 		if err != nil {
-			fmt.Printf("information not found: %v", err)
+			fmt.Printf("information not found: %v\n", err)
 			return
 		}
-		fmt.Printf("Result: \n%s " , value)
+		fmt.Printf("Result: \n%s\n" , value)
 	},
 }
 
@@ -578,7 +577,7 @@ For more information please refer:
 
 
 func init() {
-	rpc = getClient()
+	rpc = getClient(URL, GroupID)
 	// add common command
 	// TODO: test the bash scripts
 	// rootCmd.AddCommand(bashCompletionCmd, zshCompletionCmd)

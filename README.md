@@ -1,5 +1,11 @@
 # gobcos
+
+
+[![Build Status](https://travis-ci.com/KasperLiu/gobcos.svg?branch=console-feature)](https://travis-ci.com/KasperLiu/gobcos)
+
 Golang Client For FISCO BCOS 2.0.0
+
+____
 
 FISCO BCOS Go语言版本的SDK，借助以太坊代码进行改进，主要实现的功能有：
 
@@ -475,7 +481,7 @@ func main() {
 ```
 
 # 控制台使用
-使用控制台需要先拉取代码或下载代码，并对代码进行编译:
+在使用控制台需要先拉取代码或下载代码，然后对配置文件`gobcos_config.yaml`进行更改，最后对代码进行编译:
 
 ```bash
 git clone https://github.com/KasperLiu/gobcos.git
@@ -492,4 +498,3 @@ go install gobcos.go
 ```bash
 gobcos help
 ```
-

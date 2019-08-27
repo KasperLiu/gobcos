@@ -266,7 +266,7 @@ func (gc *Client) GetChainID(ctx context.Context) (*big.Int, error) {
 
 // GetBlockNumber returns the latest block height(hex format) on a given groupID.
 func (gc *Client) GetBlockNumber(ctx context.Context) ([]byte, error) {
-	var raw interface{}
+	var raw string
 	err := gc.c.CallContext(ctx, &raw, "getBlockNumber", gc.groupID)
 	if err != nil {
 		return nil, err

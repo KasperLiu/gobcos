@@ -61,7 +61,7 @@ function stop_nodes()
 }
 
 # test the common jsonRPC interface
-function test_common_rpcInterface()
+function test_rpc_connection()
 {
    LOG_INFO "## test commonRPCInterface..."
    # rpc client testing
@@ -72,7 +72,7 @@ function main()
 {
    build_blockchain
    start_nodes
-   test_common_rpcInterface
+   test_rpc_connection
 }
 
 main

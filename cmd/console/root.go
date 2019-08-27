@@ -20,25 +20,37 @@ import (
   "os"
   "github.com/spf13/cobra"
 
-  homedir "github.com/mitchellh/go-homedir"
+  // homedir "github.com/mitchellh/go-homedir"
   "github.com/spf13/viper"
 
 )
 
 
 var cfgFile string
+// GroupID default
+var GroupID uint = 1
+// URL default
+var URL = "http://localhost:8545"
+// PrivateKey default
+var PrivateKey = "145e247e170ba3afd6ae97e88f00dbc976c2345d511b0f6713355d19d8b80b58"
 
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
   Use:   "gobcos",
-  Short: "A brief description of your application",
-  Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+  Short: "gobcos is a RPC console for FISCO BCOS 2.0.0",
+  Long: `gobcos is a Golang client for FISCO BCOS 2.0.0 and it supports the JSON-RPC 
+service and the contract operations(e.g. deploying && writting contracts).
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Also, gobcos can be used as a Go package for FISCO BCOS that just simply adding 
+the import statement:
+
+    import "github.com/KasperLiu/gobcos" 
+or 
+    import "github.com/KasperLiu/gobcos/client" # using the client package
+
+Please access the github site for more details:
+    https://github.com/KasperLiu/gobcos.`,
   // Uncomment the following line if your bare application
   // has an action associated with it:
   //	Run: func(cmd *cobra.Command, args []string) { },
@@ -60,7 +72,7 @@ func init() {
   // Cobra supports persistent flags, which, if defined here,
   // will be global for your application.
 
-  rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.gobcos.yaml)")
+  rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is the project directory ./gobcos_config.yaml)")
 
 
   // Cobra also supports local flags, which will only run
@@ -76,22 +88,23 @@ func initConfig() {
     viper.SetConfigFile(cfgFile)
   } else {
     // Find home directory.
-    home, err := homedir.Dir()
-    if err != nil {
-      fmt.Println(err)
-      os.Exit(1)
-    }
+    // home, err := homedir.Dir()
+    // if err != nil {
+    //   fmt.Println(err)
+    //   os.Exit(1)
+    // }
 
-    // Search config in home directory with name ".gobcos" (without extension).
-    viper.AddConfigPath(home)
-    viper.SetConfigName(".gobcos")
+    // Search config in current directory with name "gobcos_config" (without extension).
+    viper.AddConfigPath(".")
+    viper.SetConfigName("gobcos_config")
   }
 
   viper.AutomaticEnv() // read in environment variables that match
 
   // If a config file is found, read it in.
   if err := viper.ReadInConfig(); err == nil {
-    fmt.Println("Using config file:", viper.ConfigFileUsed())
+    GroupID = uint(viper.GetInt("GroupID"))
+    URL = viper.GetString("RPCURL")
   }
 }
 
