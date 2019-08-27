@@ -3,7 +3,7 @@ language: go
 go:
 - 1.12.x
 
-install: true
+install: go mod init github.com/KasperLiu/gobcos && go mod tidy
 
 script: bash -x ci_check.sh
 
