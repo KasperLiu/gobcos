@@ -12,16 +12,50 @@ FISCO BCOS Go语言版本的SDK，借助以太坊代码进行改进，主要实�
 - FISCO BCOS 2.0.0 JSON-RPC的Golang API 服务
 - `Solidity`合约编译为Go文件
 - 部署、查询、写入智能合约
-- 控制台程序
+- 控制台
 
 `gobcos`的使用可以当做是一个`package`进行使用，亦可对项目代码进行编译，直接使用**控制台**通过配置文件来进行访问FISCO BCOS。
 
 # 环境准备
 
-- [Golang](https://golang.org/), 版本需不低于`1.12.6`，本项目采用`go module`进行包管理。具体可查阅[Using Go Modules](https://blog.golang.org/using-go-modules)
+- [Golang](https://golang.org/), 版本需不低于`1.12`，本项目采用`go module`进行包管理。具体可查阅[Using Go Modules](https://blog.golang.org/using-go-modules)
 - [FISCO BCOS 2.0.0](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/), **需要提前运行** FISCO BCOS 区块链平台，可参考[安装搭建](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/installation.html#fisco-bcos)
 - Solidity编译器，默认[0.4.25版本](https://github.com/ethereum/solidity/releases/tag/v0.4.25)
 
+# 控制台使用
+在使用控制台需要先拉取代码或下载代码，然后对配置文件`gobcos_config.yaml`进行更改:
+
+```bash
+git clone https://github.com/KasperLiu/gobcos.git
+cd gobcos
+
+#nano gobcos_config.yaml
+```
+
+本项目使用了`go module`的[特性](https://blog.golang.org/using-go-modules)，可以在旧版本的`$GOPATH`路径之外直接运行`go`命令，如果项目仍然在`$GOPATH`路径之下，则需要显示开启`GO111MODULE`以支持该特性:
+
+```
+export GO111MODULE=on
+```
+
+编译代码后会在`$GOBIN`下生成控制台程序，请确保添加`$GOBIN`到系统路径`$PATH`中，关于`$GOBIN`等的设置可以[参考这里](https://www.cnblogs.com/zhaof/p/7906722.html)，以便能正常执行`go`生成的程序:
+
+```go
+go install gobcos.go
+```
+
+如果不能访问外网，则可以设置开源代理进行依赖下载(需使用`go module`的特性)：
+```bash
+export GOPROXY=https://goproxy.io
+```
+
+如若仍然无法解决依赖问题，则可以[参考文章](https://shockerli.net/post/go-get-golang-org-x-solution/)，使用手动下载的方式，但无法支持具体版本的依赖库 :(
+
+最后，运行控制台查看可用指令:
+
+```bash
+gobcos help
+```
 
 # Package功能使用
 
@@ -478,23 +512,4 @@ func main() {
 
     fmt.Println(string(result[:])) // "bar"
 }
-```
-
-# 控制台使用
-在使用控制台需要先拉取代码或下载代码，然后对配置文件`gobcos_config.yaml`进行更改，最后对代码进行编译:
-
-```bash
-git clone https://github.com/KasperLiu/gobcos.git
-cd gobcos
-```
-
-编译代码后会在`$GOBIN`下生成控制台程序，请确保添加`$GOBIN`到系统路径`$PATH`中，以便能正常执行`go`生成的执行程序:
-
-```go
-go install gobcos.go
-```
-运行控制台查看可用指令:
-
-```bash
-gobcos help
 ```

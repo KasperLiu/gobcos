@@ -20,21 +20,9 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/KasperLiu/gobcos/client"
 	"github.com/spf13/cobra"
 )
 
-var rpc *client.Client
-
-// GetClient is used for test, it will be init by a config file later.
-func getClient(url string, groupID uint) (*client.Client) {
-	// RPC API
-	c, err := client.Dial(url, groupID)  // change to your RPC and groupID
-	if err != nil {
-		fmt.Printf("can not dial to the RPC API: %v\n", err)
-	}
-	return c
-}
 
 // commands
 // var bashCompletionCmd = &cobra.Command{
@@ -76,6 +64,23 @@ func getClient(url string, groupID uint) (*client.Client) {
 // 	},
 // }
 
+// =========== account ==========
+var newAccountCmd = &cobra.Command{
+	Use:   "newAccount",
+	Short: "Create a new account",
+	Long: `Create a new account and save the results to ./bin/account/yourAccountName.keystore in encrypted form.`,
+	Args: cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		clientVer, err := RPC.GetClientVersion(context.Background())
+		if err != nil {
+			fmt.Printf("client version not found: %v\n", err)
+			return
+		}
+		fmt.Printf("Client Version: \n%s\n" , clientVer)
+	},
+}
+
+
 // ======= node =======
 
 var getClientVersionCmd = &cobra.Command{
@@ -84,7 +89,7 @@ var getClientVersionCmd = &cobra.Command{
 	Long: `Returns the specific FISCO BCOS version that runs on the node you connected.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		clientVer, err := rpc.GetClientVersion(context.Background())
+		clientVer, err := RPC.GetClientVersion(context.Background())
 		if err != nil {
 			fmt.Printf("client version not found: %v\n", err)
 			return
@@ -99,7 +104,7 @@ var getGroupIDCmd = &cobra.Command{
 	Long: `Returns the group ID that the console had connected to.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		groupID := rpc.GetGroupID()
+		groupID := RPC.GetGroupID()
 		fmt.Printf("Group ID: \n%s\n" , groupID)
 	},
 }
@@ -111,7 +116,7 @@ var getBlockNumberCmd = &cobra.Command{
 The block height is encoded in hex`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		blockNumber,err := rpc.GetBlockNumber(context.Background())
+		blockNumber,err := RPC.GetBlockNumber(context.Background())
 		if err != nil {
 			fmt.Printf("block number not found: %v\n", err)
 			return
@@ -127,7 +132,7 @@ var getPbftViewCmd = &cobra.Command{
 The PBFT view is encoded in hex`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		pbft,err := rpc.GetPBFTView(context.Background())
+		pbft,err := RPC.GetPBFTView(context.Background())
 		if err != nil {
 			fmt.Printf("PBFT view not found: %v\n", err)
 			return
@@ -142,7 +147,7 @@ var getSealerListCmd = &cobra.Command{
 	Long: `Returns an ID list of the sealer nodes within the specified group.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		sealerList,err := rpc.GetSealerList(context.Background())
+		sealerList,err := RPC.GetSealerList(context.Background())
 		if err != nil {
 			fmt.Printf("sealer list not found: %v\n", err)
 			return
@@ -157,7 +162,7 @@ var getObserverListCmd = &cobra.Command{
 	Long: `Returns an ID list of observer nodes within the specified group.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		observerList,err := rpc.GetObserverList(context.Background())
+		observerList,err := RPC.GetObserverList(context.Background())
 		if err != nil {
 			fmt.Printf("observer list not found: %v\n", err)
 			return
@@ -172,7 +177,7 @@ var getConsensusStatusCmd = &cobra.Command{
 	Long: `Returns consensus status information within the specified group.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		consensusStatus,err := rpc.GetConsensusStatus(context.Background())
+		consensusStatus,err := RPC.GetConsensusStatus(context.Background())
 		if err != nil {
 			fmt.Printf("consensus status not found: %v\n", err)
 			return
@@ -187,7 +192,7 @@ var getSyncStatusCmd = &cobra.Command{
 	Long: `Returns synchronization status information within the specified group.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		syncStatus,err := rpc.GetSyncStatus(context.Background())
+		syncStatus,err := RPC.GetSyncStatus(context.Background())
 		if err != nil {
 			fmt.Printf("synchronization status not found: %v\n", err)
 			return
@@ -202,7 +207,7 @@ var getPeersCmd = &cobra.Command{
 	Long: `Returns the information of connected p2p nodes.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		peers,err := rpc.GetPeers(context.Background())
+		peers,err := RPC.GetPeers(context.Background())
 		if err != nil {
 			fmt.Printf("peers not found: %v\n", err)
 			return
@@ -217,7 +222,7 @@ var getGroupPeersCmd = &cobra.Command{
 	Long: `Returns an ID list of consensus nodes and observer nodes within the specified group.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		peers,err := rpc.GetGroupPeers(context.Background())
+		peers,err := RPC.GetGroupPeers(context.Background())
 		if err != nil {
 			fmt.Printf("peers not found: %v\n", err)
 			return
@@ -232,7 +237,7 @@ var getNodeIDListCmd = &cobra.Command{
 	Long: `Returns an ID list of the node itself and the connected p2p nodes.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		peers,err := rpc.GetNodeIDList(context.Background())
+		peers,err := RPC.GetNodeIDList(context.Background())
 		if err != nil {
 			fmt.Printf("node ID list not found: %v\n", err)
 			return
@@ -247,7 +252,7 @@ var getGroupListCmd = &cobra.Command{
 	Long: `Returns an ID list of groups that the node belongs.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		peers,err := rpc.GetGroupList(context.Background())
+		peers,err := RPC.GetGroupList(context.Background())
 		if err != nil {
 			fmt.Printf("group IDs list not found: %v\n", err)
 			return
@@ -289,7 +294,7 @@ For more information please refer:
 			}
 			includeTx = _includeTx
 		}
-		peers,err := rpc.GetBlockByHash(context.Background(), bhash, includeTx)
+		peers,err := RPC.GetBlockByHash(context.Background(), bhash, includeTx)
 		if err != nil {
 			fmt.Printf("block not found: %v\n", err)
 			return
@@ -304,7 +309,7 @@ var getBlockByNumberCmd = &cobra.Command{
 	Long: `Returns the block information according to the block number.
 Arguments:
        [block number]: can be input in a decimal or in hex(prefix with "0x").
-[includeTransactions]: must be true or false.
+[includeTransactions]: must be "true" or "false".
 
 For example:
 
@@ -329,7 +334,7 @@ For more information please refer:
 			}
 			includeTx = _includeTx
 		}
-		block,err := rpc.GetBlockByNumber(context.Background(), bnumber, includeTx)
+		block,err := RPC.GetBlockByNumber(context.Background(), bnumber, includeTx)
 		if err != nil {
 			fmt.Printf("block not found: %v\n", err)
 			return
@@ -355,7 +360,7 @@ For more information please refer:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		bnumber := args[0]
-		bhash,err := rpc.GetBlockHashByNumber(context.Background(), bnumber)
+		bhash,err := RPC.GetBlockHashByNumber(context.Background(), bnumber)
 		if err != nil {
 			fmt.Printf("block not found: %v\n", err)
 			return
@@ -383,7 +388,7 @@ For more information please refer:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := args[0]
-		tx,err := rpc.GetTransactionByHash(context.Background(), txHash)
+		tx,err := RPC.GetTransactionByHash(context.Background(), txHash)
 		if err != nil {
 			fmt.Printf("transaction not found: %v\n", err)
 			return
@@ -407,11 +412,11 @@ For example:
 For more information please refer:
 
     https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/api.html#`,
-	Args: cobra.RangeArgs(1,2),
+	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		bhash := args[0]
 		txIndex := args[1]
-		tx,err := rpc.GetTransactionByBlockHashAndIndex(context.Background(), bhash, txIndex)
+		tx,err := RPC.GetTransactionByBlockHashAndIndex(context.Background(), bhash, txIndex)
 		if err != nil {
 			fmt.Printf("transaction not found: %v\n", err)
 			return
@@ -435,11 +440,11 @@ For example:
 For more information please refer:
 
     https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/api.html#`,
-	Args: cobra.RangeArgs(1,2),
+	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		bnumber := args[0]
 		txIndex := args[1]
-		tx,err := rpc.GetTransactionByBlockNumberAndIndex(context.Background(), bnumber, txIndex)
+		tx,err := RPC.GetTransactionByBlockNumberAndIndex(context.Background(), bnumber, txIndex)
 		if err != nil {
 			fmt.Printf("transaction not found: %v\n", err)
 			return
@@ -465,7 +470,7 @@ For more information please refer:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		txHash := args[0]
-		tx,err := rpc.GetTransactionReceipt(context.Background(), txHash)
+		tx,err := RPC.GetTransactionReceipt(context.Background(), txHash)
 		if err != nil {
 			fmt.Printf("transaction receipt not found: %v\n", err)
 			return
@@ -480,7 +485,7 @@ var getPendingTransactionsCmd = &cobra.Command{
 	Long: `Return the transactions that are pending for packaging.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		tx, err := rpc.GetPendingTransactions(context.Background())
+		tx, err := RPC.GetPendingTransactions(context.Background())
 		if err != nil {
 			fmt.Printf("transaction not found: %v\n", err)
 			return
@@ -495,7 +500,7 @@ var getPendingTxSizeCmd = &cobra.Command{
 	Long: `Return the total count of pending transactions.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		tx, err := rpc.GetPendingTxSize(context.Background())
+		tx, err := RPC.GetPendingTxSize(context.Background())
 		if err != nil {
 			fmt.Printf("transactions not found: %v\n", err)
 			return
@@ -523,7 +528,7 @@ For more information please refer:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
         contractAdd := args[0]
-		code, err := rpc.GetCode(context.Background(), contractAdd)
+		code, err := RPC.GetCode(context.Background(), contractAdd)
 		if err != nil {
 			fmt.Printf("contract code not found: %v\n", err)
 			return
@@ -538,7 +543,7 @@ var getTotalTransactionCountCmd = &cobra.Command{
 	Long: `Returns the current total number of transactions and block height.`,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		counts, err := rpc.GetTotalTransactionCount(context.Background())
+		counts, err := RPC.GetTotalTransactionCount(context.Background())
 		if err != nil {
 			fmt.Printf("information not found: %v\n", err)
 			return
@@ -564,7 +569,7 @@ For more information please refer:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		key := args[0]
-		value, err := rpc.GetSystemConfigByKey(context.Background(), key)
+		value, err := RPC.GetSystemConfigByKey(context.Background(), key)
 		if err != nil {
 			fmt.Printf("information not found: %v\n", err)
 			return
@@ -577,7 +582,6 @@ For more information please refer:
 
 
 func init() {
-	rpc = getClient(URL, GroupID)
 	// add common command
 	// TODO: test the bash scripts
 	// rootCmd.AddCommand(bashCompletionCmd, zshCompletionCmd)

@@ -8,4 +8,4 @@ FISCOChainID: 1
 GroupID: 1
 
 # RPC url with the port
-RPCURL: "http://localhost:8545"
+RPCurl: "http://localhost:8545"

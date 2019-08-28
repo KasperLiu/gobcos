@@ -18,21 +18,33 @@ package console
 import (
   "fmt"
   "os"
-  "github.com/spf13/cobra"
 
-  // homedir "github.com/mitchellh/go-homedir"
+  "github.com/KasperLiu/gobcos/client"
+  "github.com/spf13/cobra"
   "github.com/spf13/viper"
 
 )
 
 
 var cfgFile string
+// RPC is the client connected to the blockchain
+var RPC *client.Client
 // GroupID default
-var GroupID uint = 1
+var GroupID uint
 // URL default
-var URL = "http://localhost:8545"
+var URL string
 // PrivateKey default
 var PrivateKey = "145e247e170ba3afd6ae97e88f00dbc976c2345d511b0f6713355d19d8b80b58"
+
+// GetClient is used for test, it will be init by a config file later.
+func getClient(url string, groupID uint) (*client.Client) {
+	// RPC API
+	c, err := client.Dial(url, groupID)  // change to your RPC and groupID
+	if err != nil {
+		panic(fmt.Errorf("can not dial to the RPC API: %v, please check the config file gobcos_config.yaml", err))
+	}
+	return c
+}
 
 
 // rootCmd represents the base command when called without any subcommands
@@ -103,8 +115,16 @@ func initConfig() {
 
   // If a config file is found, read it in.
   if err := viper.ReadInConfig(); err == nil {
-    GroupID = uint(viper.GetInt("GroupID"))
-    URL = viper.GetString("RPCURL")
+    if viper.IsSet("GroupID") {
+      GroupID = uint(viper.GetInt("GroupID"))
+    } else {
+      panic("GroupID has not been set")
+    }
+    if viper.IsSet("RPCurl") {
+      URL = viper.GetString("RPCurl")
+    } else {
+      panic("GroupID has not been set")
+    }
+    RPC = getClient(URL, GroupID)
   }
 }
-
