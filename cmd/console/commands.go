@@ -639,6 +639,12 @@ For more information please refer:
 			fmt.Printf("contract code not found: %v\n", err)
 			return
 		}
+
+		if(len(string(code)) < 5) {
+			fmt.Println("This address does not exist: " , args[0])
+			return
+		}
+
 		fmt.Printf("Contract Code: \n%s\n" , code)
 	},
 }
@@ -758,6 +764,9 @@ func isValidNumber(str string) (int, error){
 func isValidHex(str string) (bool, error) {
 	// starts with "0x"
 	if(strings.HasPrefix(str, "0x")) {
+		if(len(str) == 2){
+			return false, fmt.Errorf("Not a valid hex string: arguments error: please check your inpunt: %s%s", str, info)
+		}
 		// is hex string
 		_, err := hexutil.Decode(str)
 		if err != nil {
