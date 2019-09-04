@@ -41,7 +41,8 @@ func getClient(url string, groupID uint) (*client.Client) {
 	// RPC API
 	c, err := client.Dial(url, groupID)  // change to your RPC and groupID
 	if err != nil {
-		panic(fmt.Errorf("can not dial to the RPC API: %v, please check the config file gobcos_config.yaml", err))
+    fmt.Println("can not dial to the RPC API, please check the config file gobcos_config.yaml: ", err)
+    os.Exit(1)
 	}
 	return c
 }
@@ -118,12 +119,14 @@ func initConfig() {
     if viper.IsSet("GroupID") {
       GroupID = uint(viper.GetInt("GroupID"))
     } else {
-      panic("GroupID has not been set")
+      fmt.Println("GroupID has not been set, please check the config file gobcos_config.yaml")
+      os.Exit(1)
     }
     if viper.IsSet("RPCurl") {
       URL = viper.GetString("RPCurl")
     } else {
-      panic("GroupID has not been set")
+      fmt.Println("RPCurl has not been set, please check the config file gobcos_config.yaml")
+      os.Exit(1)
     }
     RPC = getClient(URL, GroupID)
   }

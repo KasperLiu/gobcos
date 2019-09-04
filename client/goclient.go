@@ -51,7 +51,7 @@ func DialContext(ctx context.Context, rawurl string, groupID uint) (*Client, err
 	client := NewClient(c, groupID)
 	_, err = client.GetClientVersion(context.Background())
 	if err != nil {
-		return nil, fmt.Errorf("the RPC server does not support the FISCO BCOS RPC API")
+		return nil, fmt.Errorf("the RPC server does not support the FISCO BCOS RPC API: GroupID or URL is wrong")
 	}
 
 	return client, nil
